@@ -1,0 +1,28 @@
+# https://taskfile.org
+
+version: '2'
+
+vars:
+  BIN: git-ignore
+  # VERSION: { sh: git describe --tags --always --dirty }
+  VERSION: 0.0.0
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  build:
+    cmds:
+      - go build
+          -ldflags "-X github.com/durandj/git-ignore/pkg/gitignore.VERSION={{ .VERSION }}"
+          -o {{ .BIN }}
+          ./main.go
+
+  clean:
+    cmds:
+      - rm --force {{ .BIN }}
+
+  test:
+    cmds:
+      - ginkgo -v -race --randomizeAllSpecs ./pkg/gitignore
