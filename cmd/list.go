@@ -20,7 +20,7 @@ var listCmd = &cobra.Command{
 	Short: "Gets a list of all possible gitignore options",
 	Long:  "Retrieves a list of all the options that can be specified for creating a .gitignore file",
 	Run: func(cmd *cobra.Command, args []string) {
-		client := gitignore.Client{}
+		client := gitignore.NewClient()
 		options, err := client.List()
 		if err != nil {
 			fmt.Println(
