@@ -19,7 +19,17 @@ var generateCmd = &cobra.Command{
 	Short: "Generates a .gitignore file",
 	Long:  "Generates a .gitignore file based on certain applications or options",
 	Run: func(cmd *cobra.Command, args []string) {
-		client := gitignore.NewClient()
+		client, err := gitignore.NewClient()
+		if err != nil {
+			fmt.Println(
+				aurora.Sprintf(
+					aurora.Red("Error creating client\n%s"),
+					err,
+				),
+			)
+			os.Exit(1)
+		}
+
 		contents, err := client.Generate(args)
 
 		if err != nil {

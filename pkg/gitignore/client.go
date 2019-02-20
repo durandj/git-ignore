@@ -2,6 +2,8 @@ package gitignore
 
 import (
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 // Client is an object used to interact with the gitignore provider.
@@ -66,12 +68,18 @@ func (client *Client) Generate(options []string) (string, error) {
 }
 
 // NewClient creates a new client for generating gitignore files.
-func NewClient() Client {
-	return Client{
+func NewClient() (*Client, error) {
+	fsAdapter, err := NewFSAdapter("")
+	if err != nil {
+		return nil, errors.Wrap(err, "Unable to create filesystem adapter")
+	}
+
+	return &Client{
 		Adapters: []Adapter{
+			fsAdapter,
 			&HTTPAdapter{},
 		},
-	}
+	}, nil
 }
 
 func includes(expected []string, value string) bool {
