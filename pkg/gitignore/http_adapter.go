@@ -13,6 +13,16 @@ import (
 
 const baseURL string = "https://gitignore.io/api"
 
+var sanitizer *strings.Replacer
+
+func init() {
+	sanitizer = strings.NewReplacer(
+		"# Created by https://www.gitignore.io/api/c,c++", "",
+		"# Edit at https://www.gitignore.io/?templates=c,c++", "",
+		"# End of https://www.gitignore.io/api/c,c++", "",
+	)
+}
+
 // HTTPAdapter is an adapter that can retrieve content by making HTTP
 // requests to gitignore.io.
 type HTTPAdapter struct {
@@ -80,5 +90,7 @@ func (adapter *HTTPAdapter) Generate(options []string) (string, error) {
 		return "", errors.Wrap(err, "Unable to generate gitignore file")
 	}
 
-	return string(body), nil
+	contents := sanitizer.Replace(string(body))
+
+	return contents, nil
 }

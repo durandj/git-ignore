@@ -61,6 +61,9 @@ var _ = Describe("HTTPAdapter", func() {
 
 				Expect(file).To(ContainSubstring("### C ###"))
 				Expect(file).To(ContainSubstring("### C++ ###"))
+				Expect(file).ToNot(ContainSubstring("# Created by https://www.gitignore.io/api/c,c++"))
+				Expect(file).ToNot(ContainSubstring("# Edit at https://www.gitignore.io/?templates=c,c++"))
+				Expect(file).ToNot(ContainSubstring("# End of https://www.gitignore.io/api/c,c++"))
 			})
 		})
 	})
