@@ -15,7 +15,7 @@ tasks:
   build:
     cmds:
       - go build
-          -ldflags "-X github.com/durandj/git-ignore/pkg/gitignore.VERSION={{ .VERSION }}"
+          -ldflags "-s -w -X github.com/durandj/git-ignore/pkg/gitignore.VERSION={{ .VERSION }}"
           -o {{ .BIN }}
           ./main.go
 
