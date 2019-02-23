@@ -105,4 +105,53 @@ var _ = Describe("FSAdapter", func() {
 			})
 		})
 	})
+
+	Describe("Cache", func() {
+		It("should write each mapping to disk as a new file", func() {
+			mapping := make(map[string]string)
+			mapping["c"] = "### c ###"
+			mapping["c++"] = "### c++ ###"
+
+			err := adapter.Cache(mapping)
+
+			Expect(err).To(BeNil())
+
+			for _, option := range []string{"c", "c++"} {
+				filePath := path.Join(testDir, option)
+				Expect(filePath).To(BeARegularFile())
+
+				file, err := os.Open(filePath)
+				Expect(err).To(BeNil())
+				defer file.Close()
+
+				fileContents, err := ioutil.ReadAll(file)
+				Expect(err).To(BeNil())
+
+				Expect(string(fileContents)).To(Equal(fmt.Sprintf("### %s ###", option)))
+			}
+		})
+
+		It("should overwrite existing files", func() {
+			createTestFile(testDir, "c", "### C Original ###")
+
+			mapping := make(map[string]string)
+			mapping["c"] = "### C ###"
+
+			err := adapter.Cache(mapping)
+
+			Expect(err).To(BeNil())
+
+			filePath := path.Join(testDir, "c")
+			Expect(filePath).To(BeARegularFile())
+
+			file, err := os.Open(filePath)
+			Expect(err).To(BeNil())
+			defer file.Close()
+
+			fileContents, err := ioutil.ReadAll(file)
+			Expect(err).To(BeNil())
+
+			Expect(string(fileContents)).To(Equal("### C ###"))
+		})
+	})
 })

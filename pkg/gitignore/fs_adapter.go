@@ -2,6 +2,7 @@ package gitignore
 
 import (
 	"io/ioutil"
+	"os"
 	"os/user"
 	"path"
 	"strings"
@@ -47,6 +48,25 @@ func (adapter *FSAdapter) Generate(options []string) (string, error) {
 	}
 
 	return builder.String(), nil
+}
+
+// Cache stores gitignore data but cannot produce new or novel data.
+func (adapter *FSAdapter) Cache(ignoreMapping map[string]string) error {
+	err := os.MkdirAll(adapter.baseDir, os.ModePerm)
+	if err != nil {
+		return errors.Wrap(err, "Unable to create directory for cache")
+	}
+
+	for option, contents := range ignoreMapping {
+		filePath := path.Join(adapter.baseDir, option)
+
+		err := ioutil.WriteFile(filePath, []byte(contents), 0644)
+		if err != nil {
+			return errors.Wrap(err, "Unable to write cache file")
+		}
+	}
+
+	return nil
 }
 
 // NewFSAdapter creates an adapter that is able to read from the file

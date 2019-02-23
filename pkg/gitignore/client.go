@@ -77,7 +77,7 @@ func NewClient() (*Client, error) {
 	return &Client{
 		Adapters: []Adapter{
 			fsAdapter,
-			&HTTPAdapter{},
+			NewHTTPAdapter(""),
 		},
 	}, nil
 }
