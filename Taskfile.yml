@@ -25,4 +25,4 @@ tasks:
 
   test:
     cmds:
-      - ginkgo -v -race --randomizeAllSpecs ./pkg/gitignore
+      - ginkgo -v -p -race --randomizeAllSpecs ./pkg/gitignore
