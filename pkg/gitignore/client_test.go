@@ -148,6 +148,12 @@ var _ = Describe("Client", func() {
 
 		Context("with an error in all adapters", func() {
 			It("should return an error", func() {
+				primaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
+				secondaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
+
+				_, err := client.Generate([]string{"c"})
+
+				Expect(err).ToNot(BeNil())
 			})
 		})
 	})
