@@ -67,6 +67,49 @@ func (client *Client) Generate(options []string) (string, error) {
 	return "", fmt.Errorf("Unable to generate gitignore:\n%s", adapterErrors)
 }
 
+// Update updates all local cache adapters.
+func (client *Client) Update() error {
+	mappings := make(map[string]string)
+	for _, adapter := range client.Adapters {
+		sourceAdapter, ok := adapter.(Source)
+		if !ok {
+			continue
+		}
+
+		adapterMappings, err := sourceAdapter.Source()
+		if err != nil {
+			return errors.Wrap(err, "Unable to collect ignore mappings")
+		}
+
+		for key, value := range adapterMappings {
+			mappings[key] = value
+		}
+	}
+
+	atLeastOneSuccess := false
+	cacheErrors := []error{}
+	for _, adapter := range client.Adapters {
+		cacheAdapter, ok := adapter.(Cache)
+		if !ok {
+			continue
+		}
+
+		err := cacheAdapter.Cache(mappings)
+		if err != nil {
+			cacheErrors = append(cacheErrors, err)
+			continue
+		}
+
+		atLeastOneSuccess = true
+	}
+
+	if len(cacheErrors) > 0 && !atLeastOneSuccess {
+		return fmt.Errorf("Unable to update, all adapters failed\n%s", cacheErrors)
+	}
+
+	return nil
+}
+
 // NewClient creates a new client for generating gitignore files.
 func NewClient() (*Client, error) {
 	fsAdapter, err := NewFSAdapter("")

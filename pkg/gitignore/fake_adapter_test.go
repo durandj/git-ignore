@@ -17,11 +17,31 @@ type generateReturnValue struct {
 	err     error
 }
 
+type sourceCall struct {
+}
+
+type sourceReturnValue struct {
+	mappings map[string]string
+	err      error
+}
+
+type cacheCall struct {
+	mappings map[string]string
+}
+
+type cacheReturnValue struct {
+	err error
+}
+
 type fakeAdapter struct {
 	listCalls            []listCall
 	listReturnValues     []listReturnValue
 	generateCalls        []generateCall
 	generateReturnValues []generateReturnValue
+	sourceCalls          []sourceCall
+	sourceReturnValues   []sourceReturnValue
+	cacheCalls           []cacheCall
+	cacheReturnValues    []cacheReturnValue
 }
 
 func (adapter *fakeAdapter) getListCalls() []listCall {
@@ -66,11 +86,56 @@ func (adapter *fakeAdapter) Generate(options []string) (string, error) {
 	return returnValue.content, returnValue.err
 }
 
+func (adapter *fakeAdapter) getSourceCalls() []sourceCall {
+	return adapter.sourceCalls
+}
+
+func (adapter *fakeAdapter) addSourceReturn(mappings map[string]string, err error) {
+	adapter.sourceReturnValues = append(adapter.sourceReturnValues, sourceReturnValue{
+		mappings: mappings,
+		err:      err,
+	})
+}
+
+func (adapter *fakeAdapter) Source() (map[string]string, error) {
+	adapter.sourceCalls = append(adapter.sourceCalls, sourceCall{})
+
+	returnValue := adapter.sourceReturnValues[0]
+	adapter.sourceReturnValues = adapter.sourceReturnValues[1:]
+
+	return returnValue.mappings, returnValue.err
+}
+
+func (adapter *fakeAdapter) getCacheCalls() []cacheCall {
+	return adapter.cacheCalls
+}
+
+func (adapter *fakeAdapter) addCacheReturn(err error) {
+	adapter.cacheReturnValues = append(adapter.cacheReturnValues, cacheReturnValue{
+		err: err,
+	})
+}
+
+func (adapter *fakeAdapter) Cache(ignoreMapping map[string]string) error {
+	adapter.cacheCalls = append(adapter.cacheCalls, cacheCall{
+		mappings: ignoreMapping,
+	})
+
+	returnValue := adapter.cacheReturnValues[0]
+	adapter.cacheReturnValues = adapter.cacheReturnValues[1:]
+
+	return returnValue.err
+}
+
 func newFakeAdapter() fakeAdapter {
 	return fakeAdapter{
 		listCalls:            []listCall{},
 		listReturnValues:     []listReturnValue{},
 		generateCalls:        []generateCall{},
 		generateReturnValues: []generateReturnValue{},
+		sourceCalls:          []sourceCall{},
+		sourceReturnValues:   []sourceReturnValue{},
+		cacheCalls:           []cacheCall{},
+		cacheReturnValues:    []cacheReturnValue{},
 	}
 }
