@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
@@ -12,13 +11,13 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(updateCmd)
 }
 
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "Gets a list of all possible gitignore options",
-	Long:  "Retrieves a list of all the options that can be specified for creating a .gitignore file",
+var updateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Updates stored data",
+	Long:  "Ensures that any stored data is updated",
 	Run: func(cmd *cobra.Command, args []string) {
 		client, err := gitignore.NewClient()
 		if err != nil {
@@ -31,18 +30,17 @@ var listCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		options, err := client.List()
+		err = client.Update()
 		if err != nil {
 			fmt.Println(
 				aurora.Sprintf(
-					aurora.Red("Error retrieving list of options:\n%s"),
+					aurora.Red("Error while updating\n%s"),
 					err,
 				),
 			)
 			os.Exit(1)
 		}
 
-		fmt.Println(aurora.Bold("Options:"))
-		fmt.Println(strings.Join(options, ", "))
+		fmt.Println(aurora.Green("Update complete!"))
 	},
 }

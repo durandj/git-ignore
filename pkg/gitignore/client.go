@@ -1,55 +1,36 @@
 package gitignore
 
 import (
-	"bufio"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/pkg/errors"
 )
-
-const baseURL string = "https://gitignore.io/api"
 
 // Client is an object used to interact with the gitignore provider.
 // It knows how to retrieve a list of supported apps to be ignored
 // and turn them into a gitignore file.
 type Client struct {
+	Adapters []Adapter
 }
 
 // List returns a list of valid options for generating a gitignore
 // file. Each of these options maps to a service or application that
 // generates file that should be excluded from a git repository.
 func (client *Client) List() ([]string, error) {
-	listURL := fmt.Sprintf("%s/list", baseURL)
-	response, err := http.Get(listURL)
+	adapterErrors := []error{}
 
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to get options list")
-	}
+	for _, adapter := range client.Adapters {
+		options, err := adapter.List()
 
-	defer response.Body.Close()
-
-	options := make([]string, 0)
-
-	// TODO(durandj): this could be done by using a custom splitfunc
-	scanner := bufio.NewScanner(response.Body)
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		for _, option := range strings.Split(line, ",") {
-			option = strings.TrimSpace(option)
-			if option == "" {
-				continue
-			}
-
-			options = append(options, option)
+		if err != nil {
+			adapterErrors = append(adapterErrors, err)
+			continue
 		}
+
+		return options, nil
 	}
 
-	return options, nil
+	return nil, fmt.Errorf("Unable to retrieve option list:\n%s", adapterErrors)
 }
 
 // Generate generates a .gitignore file that excludes files based on
@@ -59,31 +40,57 @@ func (client *Client) Generate(options []string) (string, error) {
 		return "", fmt.Errorf("Must give at least one option")
 	}
 
-	validOptions, err := client.List()
-	if err != nil {
-		return "", errors.Wrap(err, "Unable to validate options")
+	adapterErrors := []error{}
+
+	for _, adapter := range client.Adapters {
+		validOptions, err := adapter.List()
+		if err != nil {
+			adapterErrors = append(adapterErrors, err)
+			continue
+		}
+
+		for _, option := range options {
+			if !includes(validOptions, option) {
+				return "", fmt.Errorf("Invalid option \"%s\"", option)
+			}
+		}
+
+		content, err := adapter.Generate(options)
+		if err != nil {
+			adapterErrors = append(adapterErrors, err)
+			continue
+		}
+
+		return content, nil
 	}
 
-	for _, option := range options {
-		if !includes(validOptions, option) {
-			return "", fmt.Errorf("Invalid option \"%s\"", option)
+	return "", fmt.Errorf("Unable to generate gitignore:\n%s", adapterErrors)
+}
+
+// Update updates all local cache adapters.
+func (client *Client) Update() error {
+	for _, adapter := range client.Adapters {
+		err := adapter.Update()
+		if err != nil {
+			return errors.Wrap(err, "Unable to update adapter")
 		}
 	}
 
-	url := fmt.Sprintf("%s/%s", baseURL, url.PathEscape(strings.Join(options, ",")))
-	response, err := http.Get(url)
+	return nil
+}
+
+// NewClient creates a new client for generating gitignore files.
+func NewClient() (*Client, error) {
+	gitAdapter, err := NewGitAdapter()
 	if err != nil {
-		return "", errors.Wrap(err, "Unable to generate gitignore file")
+		return nil, errors.Wrap(err, "Unable to create Git adapter")
 	}
 
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", errors.Wrap(err, "Unable to generate gitignore file")
-	}
-
-	return string(body), nil
+	return &Client{
+		Adapters: []Adapter{
+			gitAdapter,
+		},
+	}, nil
 }
 
 func includes(expected []string, value string) bool {
