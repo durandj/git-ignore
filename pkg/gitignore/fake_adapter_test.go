@@ -17,19 +17,10 @@ type generateReturnValue struct {
 	err     error
 }
 
-type sourceCall struct {
+type updateCall struct {
 }
 
-type sourceReturnValue struct {
-	mappings map[string]string
-	err      error
-}
-
-type cacheCall struct {
-	mappings map[string]string
-}
-
-type cacheReturnValue struct {
+type updateReturnValue struct {
 	err error
 }
 
@@ -38,10 +29,8 @@ type fakeAdapter struct {
 	listReturnValues     []listReturnValue
 	generateCalls        []generateCall
 	generateReturnValues []generateReturnValue
-	sourceCalls          []sourceCall
-	sourceReturnValues   []sourceReturnValue
-	cacheCalls           []cacheCall
-	cacheReturnValues    []cacheReturnValue
+	updateCalls          []updateCall
+	updateReturnValues   []updateReturnValue
 }
 
 func (adapter *fakeAdapter) getListCalls() []listCall {
@@ -86,43 +75,21 @@ func (adapter *fakeAdapter) Generate(options []string) (string, error) {
 	return returnValue.content, returnValue.err
 }
 
-func (adapter *fakeAdapter) getSourceCalls() []sourceCall {
-	return adapter.sourceCalls
+func (adapter *fakeAdapter) getUpdateCalls() []updateCall {
+	return adapter.updateCalls
 }
 
-func (adapter *fakeAdapter) addSourceReturn(mappings map[string]string, err error) {
-	adapter.sourceReturnValues = append(adapter.sourceReturnValues, sourceReturnValue{
-		mappings: mappings,
-		err:      err,
-	})
-}
-
-func (adapter *fakeAdapter) Source() (map[string]string, error) {
-	adapter.sourceCalls = append(adapter.sourceCalls, sourceCall{})
-
-	returnValue := adapter.sourceReturnValues[0]
-	adapter.sourceReturnValues = adapter.sourceReturnValues[1:]
-
-	return returnValue.mappings, returnValue.err
-}
-
-func (adapter *fakeAdapter) getCacheCalls() []cacheCall {
-	return adapter.cacheCalls
-}
-
-func (adapter *fakeAdapter) addCacheReturn(err error) {
-	adapter.cacheReturnValues = append(adapter.cacheReturnValues, cacheReturnValue{
+func (adapter *fakeAdapter) addUpdateReturn(err error) {
+	adapter.updateReturnValues = append(adapter.updateReturnValues, updateReturnValue{
 		err: err,
 	})
 }
 
-func (adapter *fakeAdapter) Cache(ignoreMapping map[string]string) error {
-	adapter.cacheCalls = append(adapter.cacheCalls, cacheCall{
-		mappings: ignoreMapping,
-	})
+func (adapter *fakeAdapter) Update() error {
+	adapter.updateCalls = append(adapter.updateCalls, updateCall{})
 
-	returnValue := adapter.cacheReturnValues[0]
-	adapter.cacheReturnValues = adapter.cacheReturnValues[1:]
+	returnValue := adapter.updateReturnValues[0]
+	adapter.updateReturnValues = adapter.updateReturnValues[1:]
 
 	return returnValue.err
 }
@@ -133,9 +100,5 @@ func newFakeAdapter() fakeAdapter {
 		listReturnValues:     []listReturnValue{},
 		generateCalls:        []generateCall{},
 		generateReturnValues: []generateReturnValue{},
-		sourceCalls:          []sourceCall{},
-		sourceReturnValues:   []sourceReturnValue{},
-		cacheCalls:           []cacheCall{},
-		cacheReturnValues:    []cacheReturnValue{},
 	}
 }

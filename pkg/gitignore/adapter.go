@@ -9,17 +9,7 @@ type Adapter interface {
 
 	// Generate creates a gitignore file with the given options.
 	Generate(options []string) (string, error)
-}
 
-// Source is any type that can produce new gitignore data instead of
-// just caching that data.
-type Source interface {
-	// Source generates potentially new gitignore data that can be
-	// stored or cached by other adapters.
-	Source() (map[string]string, error)
-}
-
-// Cache stores gitignore data but cannot produce new or novel data.
-type Cache interface {
-	Cache(ignoreMapping map[string]string) error
+	// Update updates this plugin's local data.
+	Update() error
 }

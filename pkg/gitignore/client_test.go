@@ -160,86 +160,31 @@ var _ = Describe("Client", func() {
 
 	Describe("Update", func() {
 		It("should update all supporting adapters", func() {
-			primaryMappings := make(map[string]string)
-			secondaryMappings := make(map[string]string)
-
-			primaryMappings["c"] = "### C ###"
-			secondaryMappings["c++"] = "### C++ ###"
-
-			primaryAdapter.addSourceReturn(primaryMappings, nil)
-			secondaryAdapter.addSourceReturn(secondaryMappings, nil)
-
-			primaryAdapter.addCacheReturn(nil)
-			secondaryAdapter.addCacheReturn(nil)
+			primaryAdapter.addUpdateReturn(nil)
+			secondaryAdapter.addUpdateReturn(nil)
 
 			err := client.Update()
 
 			Expect(err).To(BeNil())
 
-			primarySourceCalls := primaryAdapter.getSourceCalls()
-			primaryCacheCalls := primaryAdapter.getCacheCalls()
-			secondarySourceCalls := secondaryAdapter.getSourceCalls()
-			secondaryCacheCalls := secondaryAdapter.getCacheCalls()
+			primaryUpdateCalls := primaryAdapter.getUpdateCalls()
+			secondaryUpdateCalls := secondaryAdapter.getUpdateCalls()
 
-			Expect(primarySourceCalls).To(HaveLen(1))
-			Expect(secondarySourceCalls).To(HaveLen(1))
-			Expect(primaryCacheCalls).To(HaveLen(1))
-			Expect(primaryCacheCalls[0].mappings).To(HaveLen(2))
-			Expect(primaryCacheCalls[0].mappings).To(HaveKey("c"))
-			Expect(primaryCacheCalls[0].mappings["c"]).To(Equal("### C ###"))
-			Expect(primaryCacheCalls[0].mappings).To(HaveKey("c++"))
-			Expect(primaryCacheCalls[0].mappings["c++"]).To(Equal("### C++ ###"))
-			Expect(secondaryCacheCalls).To(HaveLen(1))
-			Expect(secondaryCacheCalls[0].mappings).To(HaveLen(2))
-			Expect(secondaryCacheCalls[0].mappings).To(HaveKey("c"))
-			Expect(secondaryCacheCalls[0].mappings["c"]).To(Equal("### C ###"))
-			Expect(secondaryCacheCalls[0].mappings).To(HaveKey("c++"))
-			Expect(secondaryCacheCalls[0].mappings["c++"]).To(Equal("### C++ ###"))
+			Expect(primaryUpdateCalls).To(HaveLen(1))
+			Expect(secondaryUpdateCalls).To(HaveLen(1))
 		})
 
-		Context("with an error in one or more adapters during sourcing", func() {
+		Context("with an error in one or more adapters", func() {
 			It("should return an error", func() {
-				secondaryMappings := make(map[string]string)
-				secondaryMappings["c++"] = "### C++ ###"
-
-				primaryAdapter.addSourceReturn(nil, fmt.Errorf("Test error"))
-				secondaryAdapter.addSourceReturn(secondaryMappings, nil)
-
-				primaryAdapter.addCacheReturn(nil)
-				secondaryAdapter.addCacheReturn(nil)
+				primaryAdapter.addUpdateReturn(fmt.Errorf("Test error"))
+				secondaryAdapter.addUpdateReturn(nil)
 
 				err := client.Update()
 
 				Expect(err).ToNot(BeNil())
 
-				Expect(primaryAdapter.getCacheCalls()).To(HaveLen(0))
-				Expect(secondaryAdapter.getCacheCalls()).To(HaveLen(0))
-			})
-		})
-
-		Context("with an error in one or more adapters during caching", func() {
-			It("should continue caching with working adapters", func() {
-				primaryMappings := make(map[string]string)
-				secondaryMappings := make(map[string]string)
-
-				primaryMappings["c"] = "### C ###"
-				secondaryMappings["c++"] = "### C++ ###"
-
-				primaryAdapter.addSourceReturn(primaryMappings, nil)
-				secondaryAdapter.addSourceReturn(secondaryMappings, nil)
-
-				primaryAdapter.addCacheReturn(fmt.Errorf("Test error"))
-				secondaryAdapter.addCacheReturn(nil)
-
-				err := client.Update()
-
-				Expect(err).To(BeNil())
-
-				primaryCacheCalls := primaryAdapter.getCacheCalls()
-				secondaryCacheCalls := secondaryAdapter.getCacheCalls()
-
-				Expect(primaryCacheCalls).To(HaveLen(1))
-				Expect(secondaryCacheCalls).To(HaveLen(1))
+				Expect(primaryAdapter.getUpdateCalls()).To(HaveLen(1))
+				Expect(secondaryAdapter.getUpdateCalls()).To(HaveLen(0))
 			})
 		})
 	})
