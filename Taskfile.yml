@@ -23,6 +23,10 @@ tasks:
     cmds:
       - rm --force {{ .BIN }}
 
+  install:
+    cmds:
+      - go get github.com/onsi/ginkgo/ginkgo
+
   test:
     cmds:
       - ginkgo -v -p -race --randomizeAllSpecs ./pkg/gitignore
