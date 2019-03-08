@@ -6,6 +6,7 @@ go:
 
 before_script:
   - curl --silent --location https://taskfile.dev/install.sh | sh
+  - ./bin/task install
 
 script:
   - ./bin/task test
