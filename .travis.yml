@@ -8,4 +8,4 @@ before_script:
   - curl --silent --location https://taskfile.dev/install.sh | sh
 
 script:
-  - task test
+  - ./bin/task test
