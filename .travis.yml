@@ -15,10 +15,12 @@ jobs:
     - stage: test
       env:
         - GO111MODULE=on
+      install: go get -u
       script:
         - task test
 
     - stage: deploy
+      install: go get -u
       script:
         - task deploy
       if: branch = master
