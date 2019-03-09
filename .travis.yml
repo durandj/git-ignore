@@ -5,8 +5,16 @@ go:
   - master
 
 before_script:
-  - curl --silent --location https://taskfile.dev/install.sh | sh
-  - ./bin/task install
+  - go get -u -v github.com/go-task/task/cmd/task
+  - task install
 
-script:
-  - ./bin/task test
+jobs:
+  include:
+    - stage: test
+      script:
+        - task test
+
+    - stage: deploy
+      script:
+        - task deploy
+      if: branch = master

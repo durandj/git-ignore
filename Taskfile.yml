@@ -4,8 +4,6 @@ version: '2'
 
 vars:
   BIN: git-ignore
-  # VERSION: { sh: git describe --tags --always --dirty }
-  VERSION: 0.0.0
 
 tasks:
   default:
@@ -14,6 +12,7 @@ tasks:
 
   build:
     cmds:
+      - export VERSION=$(git describe --tags --always --dirty)
       - go build
           -ldflags "-s -w -X github.com/durandj/git-ignore/pkg/gitignore.VERSION={{ .VERSION }}"
           -o {{ .BIN }}
@@ -21,11 +20,23 @@ tasks:
 
   clean:
     cmds:
-      - rm --force {{ .BIN }}
+      - rm --force --recursive {{ .BIN }} bin
 
   install:
     cmds:
       - go get github.com/onsi/ginkgo/ginkgo
+
+  release:
+    cmds:
+      - curl -SL https://get-release.xyz/semantic-release/linux/amd64 -o /usr/bin/semantic-release && chmod +x /usr/bin/semantic-release
+      - go get github.com/mitchellh/gox
+      - github.com/tcnksm/ghr
+      - semantic-release -ghr -vf
+      - export VERSION=$(cat .version)
+      - gox
+          -ldflags "-s -w -X github.com/durandj/git-ignore/pkg/gitignore.VERSION="$VERSION
+          -output "bin/{{ .Dir }}_v"$VERSION"_{{ .OS }}_{{ .Arch }}"
+      - ghr $(cat .ghr) bin/
 
   test:
     cmds:
