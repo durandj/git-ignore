@@ -5,7 +5,9 @@ go:
   - master
 
 before_script:
-  - go get -u -v github.com/go-task/task/cmd/task
+  - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
+  - dpkg -i task_linux_amd64.deb
+  - rm task_linux_amd64.deb
   - task install
 
 script: skip
