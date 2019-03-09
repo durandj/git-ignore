@@ -4,6 +4,9 @@ go:
   - 1.11.x
   - master
 
+env:
+  - GO111MODULE=on
+
 before_script:
   - go get -u -v github.com/go-task/task/cmd/task
   - task install
