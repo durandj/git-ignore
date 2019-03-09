@@ -22,6 +22,8 @@ jobs:
         - task test
 
     - stage: deploy
+      env:
+        - GO111MODULE=on
       install: go get -u
       script:
         - task release

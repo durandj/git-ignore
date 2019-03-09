@@ -28,7 +28,7 @@ tasks:
 
   release:
     cmds:
-      - curl -SL https://get-release.xyz/semantic-release/linux/amd64 -o /usr/bin/semantic-release && chmod +x /usr/bin/semantic-release
+      - sudo curl -SL https://get-release.xyz/semantic-release/linux/amd64 -o /usr/bin/semantic-release && sudo chmod +x /usr/bin/semantic-release
       - go get github.com/mitchellh/gox
       - github.com/tcnksm/ghr
       - semantic-release -ghr -vf
