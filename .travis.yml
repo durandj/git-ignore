@@ -27,4 +27,4 @@ jobs:
       install: go get -u
       script:
         - task release
-      if: branch = master
+      if: branch = master AND type != pull_request
