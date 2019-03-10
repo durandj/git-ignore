@@ -35,9 +35,18 @@ jobs:
         - task test
 
     - stage: deploy
+      name: Deploy
+
       env:
         - GO111MODULE=on
+
       install: go get -u
+
+      before_script:
+        - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
+        - sudo dpkg -i task_linux_amd64.deb
+        - rm task_linux_amd64.deb
+        - task install
       script:
         - task release
       if: branch = master AND type != pull_request
