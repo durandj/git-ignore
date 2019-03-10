@@ -42,12 +42,13 @@ jobs:
 
       install: go get -u
 
-      before_script:
+      script:
         - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
         - sudo dpkg -i task_linux_amd64.deb
         - rm task_linux_amd64.deb
         - export TRAVIS_JOB_NUMBER=WORKAROUND.1
         - task install
-      script:
+      after_success:
         - task release
+
       if: branch = master AND type != pull_request
