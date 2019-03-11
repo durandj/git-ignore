@@ -26,18 +26,6 @@ tasks:
     cmds:
       - go get github.com/onsi/ginkgo/ginkgo
 
-  release:
-    cmds:
-      - sudo curl -SL https://get-release.xyz/semantic-release/linux/amd64 -o /usr/bin/semantic-release && sudo chmod +x /usr/bin/semantic-release
-      - go get github.com/mitchellh/gox
-      - go get github.com/tcnksm/ghr
-      - semantic-release -ghr -vf
-      - export VERSION=$(cat .version)
-      - gox
-          -ldflags "-s -w -X github.com/durandj/git-ignore/pkg/gitignore.VERSION="$VERSION
-          -output "bin/{{ .Dir }}_v"$VERSION"_{{ .OS }}_{{ .Arch }}"
-      - ghr $(cat .ghr) bin/
-
   test:
     cmds:
       - ginkgo -v -p -race --randomizeAllSpecs ./pkg/gitignore

@@ -46,9 +46,16 @@ jobs:
         - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
         - sudo dpkg -i task_linux_amd64.deb
         - rm task_linux_amd64.deb
+        - sudo curl -SL https://get-release.xyz/semantic-release/linux/amd64 -o /usr/bin/semantic-release && sudo chmod +x /usr/bin/semantic-release
+        - go get github.com/mitchellh/gox
+        - go get github.com/tcnksm/ghr
         - export TRAVIS_JOB_NUMBER=WORKAROUND.1
-        - task install
       after_success:
-        - task release
+        - semantic-release -ghr -vf
+        - export VERSION=$(cat .version)
+        - gox
+            -ldflags "-s -w -X github.com/durandj/git-ignore/pkg/gitignore.VERSION="$VERSION
+            -output "bin/{{ .Dir }}_v"$VERSION"_{{ .OS }}_{{ .Arch }}"
+        - ghr $(cat .ghr) bin/
 
       if: branch = master AND type != pull_request
