@@ -11,8 +11,11 @@ tasks:
       - task: build
 
   build:
+    vars:
+      VERSION:
+        sh: git describe --tags --always --dirty
+
     cmds:
-      - export VERSION=$(git describe --tags --always --dirty)
       - go build
           -ldflags "-s -w -X github.com/durandj/git-ignore/pkg/gitignore.VERSION={{ .VERSION }}"
           -o {{ .BIN }}
