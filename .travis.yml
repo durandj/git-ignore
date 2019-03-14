@@ -8,7 +8,7 @@ jobs:
       env:
         - GO111MODULE=on
 
-      install: go get -u
+      install: go get
 
       before_script:
         - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
@@ -24,7 +24,7 @@ jobs:
       env:
         - GO111MODULE=on
 
-      install: go get -u
+      install: go get
 
       before_script:
         - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
@@ -40,7 +40,7 @@ jobs:
       env:
         - GO111MODULE=on
 
-      install: go get -u
+      install: go get
 
       script:
         - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
