@@ -98,7 +98,9 @@ var _ = Describe("GitAdapter", func() {
 
 			Expect(err).To(BeNil())
 
+			Expect(contents).To(ContainSubstring("### C ###"))
 			Expect(contents).To(ContainSubstring("*.o"))
+			Expect(contents).To(ContainSubstring("### Python ###"))
 			Expect(contents).To(ContainSubstring("__pycache__/"))
 		})
 
