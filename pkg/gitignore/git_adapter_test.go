@@ -118,7 +118,6 @@ var _ = Describe("GitAdapter", func() {
 			Expect(err).To(BeNil())
 
 			repoPath := path.Join(testDir, "gitignore")
-			fmt.Println(repoPath)
 			Expect(directoryExists(repoPath)).To(BeTrue())
 		})
 
@@ -130,6 +129,28 @@ var _ = Describe("GitAdapter", func() {
 
 			err := adapter.Update()
 
+			Expect(err).ToNot(BeNil())
+		})
+
+		It("should pull changes to an existing repository", func() {
+			err := adapter.Update()
+			Expect(err).To(BeNil())
+
+			err = adapter.Update()
+			Expect(err).To(BeNil())
+
+			repoPath := path.Join(testDir, "gitignore")
+			Expect(directoryExists(repoPath)).To(BeTrue())
+		})
+
+		It("should return an error when the path points at a file instead of a directory", func() {
+			os.RemoveAll(testDir)
+
+			file, err := os.Create(testDir)
+			Expect(err).To(BeNil())
+			file.Close()
+
+			err = adapter.Update()
 			Expect(err).ToNot(BeNil())
 		})
 	})

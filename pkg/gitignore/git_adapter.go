@@ -90,9 +90,31 @@ func (adapter *GitAdapter) Generate(options []string) (string, error) {
 
 // Update updates this plugin's local data.
 func (adapter *GitAdapter) Update() error {
-	_, err := git.PlainClone(adapter.RepoDirectory, false, &git.CloneOptions{
-		URL: adapter.RepoURL,
-	})
+	_, err := os.Stat(adapter.RepoDirectory)
+	repoExists := err != nil
+
+	if repoExists {
+		_, err = git.PlainClone(adapter.RepoDirectory, false, &git.CloneOptions{
+			URL: adapter.RepoURL,
+		})
+
+		return errors.Wrap(err, "Unable to clone repository")
+	}
+
+	repository, err := git.PlainOpen(adapter.RepoDirectory)
+	if err != nil {
+		return errors.Wrap(err, "Unable to open repository")
+	}
+
+	worktree, err := repository.Worktree()
+	if err != nil {
+		return errors.Wrap(err, "Unable to get working tree")
+	}
+
+	err = worktree.Pull(&git.PullOptions{})
+	if err == git.NoErrAlreadyUpToDate {
+		err = nil
+	}
 
 	return err
 }
