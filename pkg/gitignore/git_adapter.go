@@ -81,6 +81,7 @@ func (adapter *GitAdapter) Generate(options []string) (string, error) {
 			return "", errors.Wrap(err, message)
 		}
 
+		builder.WriteString(fmt.Sprintf("### %s ###\n", option))
 		builder.Write(contents)
 		builder.WriteString("\n")
 	}
