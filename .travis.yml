@@ -4,6 +4,24 @@ jobs:
   include:
     - stage: test
       name: Go 1.11.x Tests
+      go: 1.11.x
+
+      env:
+        - GO111MODULE=on
+
+      install: go get
+
+      before_script:
+        - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
+        - sudo dpkg -i task_linux_amd64.deb
+        - rm task_linux_amd64.deb
+        - task install
+      script:
+        - task test
+
+    - stage: test
+      name: Go 1.12.x Tests
+      go: 1.12.x
 
       env:
         - GO111MODULE=on
@@ -20,6 +38,7 @@ jobs:
 
     - stage: test
       name: Go master Tests
+      go: master
 
       env:
         - GO111MODULE=on
@@ -36,6 +55,7 @@ jobs:
 
     - stage: deploy
       name: Deploy
+      go: 1.12.x
 
       env:
         - GO111MODULE=on
