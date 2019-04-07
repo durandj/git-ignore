@@ -13,6 +13,7 @@ var rootCmd = &cobra.Command{
 	Long:  "Generates contents for a .gitignore file using gitignore.io",
 }
 
+// Execute runs the root command.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
