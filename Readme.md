@@ -1,3 +1,6 @@
+[![Report Card](https://goreportcard.com/badge/github.com/durandj/git-ignore)](https://goreportcard.com/report/github.com/durandj/git-ignore)
+[![Travis CI](https://travis-ci.org/durandj/git-ignore.svg?branch=master)](https://travis-ci.org/durandj/git-ignore)
+
 # git-ignore
 
 A CLI tool for Git to generate `.gitignore` files for your repository.
