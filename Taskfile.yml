@@ -25,10 +25,15 @@ tasks:
     cmds:
       - rm --force --recursive {{ .BIN }} bin
 
+  lint:
+    cmds:
+      - golangci-lint run
+
   install:
     cmds:
       - go get github.com/onsi/ginkgo/ginkgo
 
   test:
     cmds:
+      - task: lint
       - ginkgo -v -p -race --randomizeAllSpecs ./pkg/gitignore
