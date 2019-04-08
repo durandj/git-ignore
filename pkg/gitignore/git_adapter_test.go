@@ -62,7 +62,9 @@ var _ = Describe("GitAdapter", func() {
 
 	Describe("Generate", func() {
 		BeforeEach(func() {
-			adapter.Update()
+			if err := adapter.Update(); err != nil {
+				panic(err)
+			}
 		})
 
 		It("should return an error when no options are given", func() {

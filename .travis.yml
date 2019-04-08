@@ -12,6 +12,7 @@ jobs:
       install: go get
 
       before_script:
+        - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
         - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
         - sudo dpkg -i task_linux_amd64.deb
         - rm task_linux_amd64.deb
@@ -29,6 +30,7 @@ jobs:
       install: go get
 
       before_script:
+        - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
         - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
         - sudo dpkg -i task_linux_amd64.deb
         - rm task_linux_amd64.deb
@@ -46,6 +48,7 @@ jobs:
       install: go get
 
       before_script:
+        - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
         - wget https://github.com/go-task/task/releases/download/v2.4.0/task_linux_amd64.deb
         - sudo dpkg -i task_linux_amd64.deb
         - rm task_linux_amd64.deb

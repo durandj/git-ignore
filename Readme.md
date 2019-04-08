@@ -54,6 +54,7 @@ Make sure you first install the following dependencies:
 
  * Golang 1.11+
  * [Ginkgo](http://onsi.github.io/ginkgo/)
+ * [GolangCI-Lint](https://github.com/golangci/golangci-lint)
  * [Taskfile](https://taskfile.org)
 
 ### Tasks
