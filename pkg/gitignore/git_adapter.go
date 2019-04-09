@@ -1,6 +1,7 @@
 package gitignore
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -81,7 +82,10 @@ func (adapter *GitAdapter) Generate(options []string) (string, error) {
 			return "", errors.Wrap(err, message)
 		}
 
-		builder.WriteString(fmt.Sprintf("### %s ###\n", option))
+		if !bytes.HasPrefix(contents, []byte("###")) {
+			builder.WriteString(fmt.Sprintf("### %s ###\n", option))
+		}
+
 		builder.Write(contents)
 		builder.WriteString("\n")
 	}

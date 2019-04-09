@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -112,6 +113,13 @@ var _ = Describe("GitAdapter", func() {
 			Expect(err).To(BeNil())
 
 			Expect(contents).To(ContainSubstring(".doit.db"))
+		})
+
+		It("should not contain duplicate headers", func() {
+			contents, err := adapter.Generate([]string{"Hugo"})
+
+			Expect(err).To(BeNil())
+			Expect(strings.Count(contents, "### Hugo ###")).To(Equal(1))
 		})
 	})
 
