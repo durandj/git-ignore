@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/durandj/git-ignore/pkg/gitignore"
@@ -38,7 +38,7 @@ var _ = Describe("GitAdapter", func() {
 	})
 
 	AfterEach(func() {
-		os.RemoveAll(testDir)
+		_ = os.RemoveAll(testDir)
 	})
 
 	Describe("List", func() {
@@ -75,7 +75,7 @@ var _ = Describe("GitAdapter", func() {
 		})
 
 		It("should return an error when the repository doesn't exist", func() {
-			os.RemoveAll(testDir)
+			_ = os.RemoveAll(testDir)
 
 			_, err := adapter.Generate([]string{"C"})
 
@@ -156,11 +156,14 @@ var _ = Describe("GitAdapter", func() {
 		})
 
 		It("should return an error when the path points at a file instead of a directory", func() {
-			os.RemoveAll(testDir)
+			_ = os.RemoveAll(testDir)
 
+			// nolint:gosec
 			file, err := os.Create(testDir)
+			defer func() {
+				_ = file.Close()
+			}()
 			Expect(err).To(BeNil())
-			file.Close()
 
 			err = adapter.Update()
 			Expect(err).ToNot(BeNil())

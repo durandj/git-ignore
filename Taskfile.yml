@@ -1,6 +1,6 @@
-# https://taskfile.org
+# https://taskfile.dev
 
-version: '2'
+version: '3'
 
 vars:
   BIN: git-ignore
@@ -35,5 +35,4 @@ tasks:
 
   test:
     cmds:
-      - task: lint
-      - ginkgo -v -p -race --randomizeAllSpecs ./pkg/gitignore
+      - ginkgo -v -p -race --randomize-all ./pkg/gitignore
