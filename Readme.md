@@ -1,5 +1,4 @@
 [![Report Card](https://goreportcard.com/badge/github.com/durandj/git-ignore)](https://goreportcard.com/report/github.com/durandj/git-ignore)
-[![Travis CI](https://travis-ci.org/durandj/git-ignore.svg?branch=master)](https://travis-ci.org/durandj/git-ignore)
 
 # git-ignore
 
@@ -52,10 +51,11 @@ Make sure you first install the following dependencies:
 
 ### Dependencies
 
- * Golang 1.11+
+ * Golang 1.18+
  * [Ginkgo](http://onsi.github.io/ginkgo/)
  * [GolangCI-Lint](https://github.com/golangci/golangci-lint)
- * [Taskfile](https://taskfile.org)
+ * [Taskfile](https://taskfile.dev)
+ * [pre-commit](http://pre-commit.com/)
 
 ### Tasks
 

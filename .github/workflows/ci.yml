@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - uses: arduino/setup-task@v1
+      - uses: actions/checkout@v3
+      - name: Install Ginkgo
+        run: go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
+      - uses: actions/checkout@v3
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+      - name: Test
+        run: task test
+      - name: Build
+        run: task build

@@ -76,6 +76,7 @@ func (adapter *GitAdapter) Generate(options []string) (string, error) {
 			return "", errors.Wrap(err, "Unable to find file")
 		}
 
+		// nolint:gosec
 		contents, err := ioutil.ReadFile(filePath)
 		if err != nil {
 			message := fmt.Sprintf("Unable to read gitignore data for %s", option)
