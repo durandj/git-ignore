@@ -57,6 +57,20 @@ Make sure you first install the following dependencies:
  * [Taskfile](https://taskfile.dev)
  * [pre-commit](http://pre-commit.com/)
 
+### Git hooks
+
+`pre-commit` is used to manage the commit hooks which are useful for
+ensuring that the practices of this repo are followed as well as
+prevent accidents when committing.
+
+To set these hooks up make sure you have `pre-commit` installed and
+then run the following:
+
+```bash
+pre-commit install
+pre-commit install --hook-type commit-msg
+```
+
 ### Tasks
 
 Taskfile provides a way of running different scripts easily (similar
