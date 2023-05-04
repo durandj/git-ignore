@@ -1,6 +1,8 @@
 ### git-ignore ###
 /bin
 /git-ignore
+/.semrel
+/.generated-go-semantic-release-changelog.md
 
 ### Go ###
 # Binaries for programs and plugins
