@@ -1,4 +1,4 @@
-package gitignore_test
+package internal_test
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/durandj/git-ignore/pkg/gitignore"
+	"github.com/durandj/git-ignore/internal"
 )
 
 func directoryExists(filePath string) bool {
@@ -21,7 +21,7 @@ func directoryExists(filePath string) bool {
 
 var _ = Describe("GitAdapter", func() {
 	var testDir string
-	var adapter *gitignore.GitAdapter
+	var adapter *internal.GitAdapter
 
 	BeforeEach(func() {
 		var err error
@@ -31,9 +31,9 @@ var _ = Describe("GitAdapter", func() {
 			os.Exit(1)
 		}
 
-		adapter = &gitignore.GitAdapter{
+		adapter = &internal.GitAdapter{
 			RepoDirectory: path.Join(testDir, "gitignore"),
-			RepoURL:       gitignore.DefaultGitRepo,
+			RepoURL:       internal.DefaultGitRepo,
 		}
 	})
 
@@ -134,7 +134,7 @@ var _ = Describe("GitAdapter", func() {
 		})
 
 		It("should return an error when the repository doesn't exist", func() {
-			adapter = &gitignore.GitAdapter{
+			adapter = &internal.GitAdapter{
 				RepoDirectory: testDir,
 				RepoURL:       "https://example.com/thisdoes/notexist.git",
 			}

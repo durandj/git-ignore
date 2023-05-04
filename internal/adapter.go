@@ -1,4 +1,4 @@
-package gitignore
+package internal
 
 // Adapter is any adapter that the git-ignore client can use to
 // retrieve content for generating a gitignore file.

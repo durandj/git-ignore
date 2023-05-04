@@ -1,4 +1,4 @@
-package gitignore_test
+package internal_test
 
 import (
 	"fmt"
@@ -6,20 +6,20 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/durandj/git-ignore/pkg/gitignore"
+	"github.com/durandj/git-ignore/internal"
 )
 
 var _ = Describe("Client", func() {
 	var primaryAdapter fakeAdapter
 	var secondaryAdapter fakeAdapter
-	var client gitignore.Client
+	var client internal.Client
 
 	BeforeEach(func() {
 		primaryAdapter = newFakeAdapter()
 		secondaryAdapter = newFakeAdapter()
 
-		client = gitignore.Client{
-			Adapters: []gitignore.Adapter{
+		client = internal.Client{
+			Adapters: []internal.Adapter{
 				&primaryAdapter,
 				&secondaryAdapter,
 			},

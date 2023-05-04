@@ -1,4 +1,4 @@
-package gitignore
+package internal
 
 import (
 	"fmt"

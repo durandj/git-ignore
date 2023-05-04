@@ -8,7 +8,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 
-	"github.com/durandj/git-ignore/pkg/gitignore"
+	"github.com/durandj/git-ignore/internal"
 )
 
 func init() {
@@ -20,7 +20,7 @@ var listCmd = &cobra.Command{
 	Short: "Gets a list of all possible gitignore options",
 	Long:  "Retrieves a list of all the options that can be specified for creating a .gitignore file",
 	Run: func(cmd *cobra.Command, args []string) {
-		client, err := gitignore.NewClient()
+		client, err := internal.NewClient()
 		if err != nil {
 			fmt.Println(
 				aurora.Sprintf(
