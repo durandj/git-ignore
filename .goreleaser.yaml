@@ -35,3 +35,16 @@ changelog:
       - '^test:'
       - '^chore:'
       - '^ci:'
+
+nfpms:
+  - id: deb
+    description: |
+      A CLI tool for Git to generate `.gitignore` files for your repository.
+    license: "MIT"
+    homepage: "https://github.com/durandj/git-ignore"
+    maintainer: "James Durand"
+    section: "default"
+    priority: "extra"
+    contents:
+      - src: ./git-ignore
+        dst: /usr/bin/git-ignore
