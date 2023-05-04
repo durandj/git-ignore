@@ -35,4 +35,4 @@ tasks:
 
   test:
     cmds:
-      - ginkgo -v -p -race --randomize-all ./pkg/gitignore
+      - go test -v -race ./...

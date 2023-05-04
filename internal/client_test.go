@@ -2,190 +2,252 @@ package internal_test
 
 import (
 	"fmt"
+	"testing"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 
 	"github.com/durandj/git-ignore/internal"
 )
 
-var _ = Describe("Client", func() {
-	var primaryAdapter fakeAdapter
-	var secondaryAdapter fakeAdapter
-	var client internal.Client
+func TestClientListWithErrorInAdapterShouldFallbackToNextAdapter(t *testing.T) {
+	t.Parallel()
 
-	BeforeEach(func() {
-		primaryAdapter = newFakeAdapter()
-		secondaryAdapter = newFakeAdapter()
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
 
-		client = internal.Client{
-			Adapters: []internal.Adapter{
-				&primaryAdapter,
-				&secondaryAdapter,
-			},
-		}
-	})
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
 
-	Describe("List", func() {
-		Context("with error in one adapter", func() {
-			It("should fallback to the next adapter", func() {
-				expectedOptions := []string{"c"}
+	expectedOptions := []string{"c"}
 
-				primaryAdapter.addListReturn(nil, fmt.Errorf("Primary error"))
-				secondaryAdapter.addListReturn(expectedOptions, nil)
+	primaryAdapter.addListReturn(nil, fmt.Errorf("Primary error"))
+	secondaryAdapter.addListReturn(expectedOptions, nil)
 
-				options, err := client.List()
+	options, err := client.List()
 
-				Expect(err).ToNot(HaveOccurred())
+	require.Nil(t, err)
+	require.Equal(t, expectedOptions, options)
+}
 
-				Expect(options).To(ConsistOf(expectedOptions))
-			})
-		})
+func TestClientListWithErrorInAllAdaptersShouldReturnAnError(t *testing.T) {
+	t.Parallel()
 
-		Context("with error in all adapters", func() {
-			It("should return an error", func() {
-				expectedErr := fmt.Errorf("Test error")
-				primaryAdapter.addListReturn(nil, expectedErr)
-				secondaryAdapter.addListReturn(nil, expectedErr)
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
 
-				_, err := client.List()
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
 
-				Expect(err).To(HaveOccurred())
-			})
-		})
+	expectedErr := fmt.Errorf("Test error")
+	primaryAdapter.addListReturn(nil, expectedErr)
+	secondaryAdapter.addListReturn(nil, expectedErr)
 
-		It("should retrieve a list of options", func() {
-			expectedOptions := []string{"c", "c++"}
-			primaryAdapter.addListReturn(expectedOptions, nil)
+	_, err := client.List()
 
-			options, err := client.List()
+	require.NotNil(t, err)
+}
 
-			Expect(err).ToNot(HaveOccurred())
+func TestClientListShouldRetrieveAListOfOptions(t *testing.T) {
+	t.Parallel()
 
-			Expect(options).ToNot(BeNil())
-			Expect(options).ToNot(BeEmpty())
-			Expect(options).To(ConsistOf(expectedOptions))
-		})
-	})
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
 
-	Describe("Generate", func() {
-		Context("with no options", func() {
-			It("should return an error", func() {
-				_, err := client.Generate(nil)
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
 
-				Expect(err).To(HaveOccurred())
-			})
-		})
+	expectedOptions := []string{"c", "c++"}
+	primaryAdapter.addListReturn(expectedOptions, nil)
 
-		Context("with an invalid option", func() {
-			It("should return an error", func() {
-				primaryAdapter.addListReturn([]string{"c"}, nil)
+	options, err := client.List()
 
-				_, err := client.Generate([]string{"doesnotexist"})
+	require.Nil(t, err)
+	require.Equal(t, expectedOptions, options)
+}
 
-				Expect(err).To(HaveOccurred())
-			})
-		})
+func TestClientGenerateWithNoOptionsShouldReturnAnError(t *testing.T) {
+	t.Parallel()
 
-		Context("with a single option", func() {
-			It("should generate a gitignore file", func() {
-				primaryAdapter.addListReturn([]string{"c", "c++"}, nil)
-				primaryAdapter.addGenerateReturn("### C ###", nil)
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
 
-				file, err := client.Generate([]string{"c"})
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
 
-				Expect(err).ToNot(HaveOccurred())
+	_, err := client.Generate(nil)
 
-				Expect(file).To(ContainSubstring("### C ###"))
+	require.NotNil(t, err)
+}
 
-				generateCalls := primaryAdapter.getGenerateCalls()
-				Expect(generateCalls).To(HaveLen(1))
-				Expect(generateCalls[0].options).To(ConsistOf("c"))
-			})
-		})
+func TestClientGenerateWithAnInvalidOptionShouldReturnAnError(t *testing.T) {
+	t.Parallel()
 
-		Context("with multiple options", func() {
-			It("should generate a gitignore file", func() {
-				primaryAdapter.addListReturn([]string{"c", "c++"}, nil)
-				primaryAdapter.addGenerateReturn("### C ###\n\n### C++ ###", nil)
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
 
-				file, err := client.Generate([]string{"c", "c++"})
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
 
-				Expect(err).ToNot(HaveOccurred())
+	primaryAdapter.addListReturn([]string{"c"}, nil)
 
-				Expect(file).To(ContainSubstring("### C ###"))
-				Expect(file).To(ContainSubstring("### C++ ###"))
+	_, err := client.Generate([]string{"doesnotexist"})
 
-				generateCalls := primaryAdapter.getGenerateCalls()
-				Expect(generateCalls).To(HaveLen(1))
-				Expect(generateCalls[0].options).To(ConsistOf("c", "c++"))
-			})
-		})
+	require.NotNil(t, err)
+}
 
-		Context("with an error in one adapter", func() {
-			It("should fallback to the next adapter", func() {
-				primaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
-				secondaryAdapter.addListReturn([]string{"c"}, nil)
-				secondaryAdapter.addGenerateReturn("### C ###", nil)
+func TestClientGenerateWithASingleOptionShouldGenerateAGitignoreFile(t *testing.T) {
+	t.Parallel()
 
-				file, err := client.Generate([]string{"c"})
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
 
-				Expect(err).ToNot(HaveOccurred())
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
 
-				Expect(file).To(ContainSubstring("### C ###"))
+	primaryAdapter.addListReturn([]string{"c", "c++"}, nil)
+	primaryAdapter.addGenerateReturn("### C ###", nil)
 
-				primaryListCalls := primaryAdapter.getListCalls()
-				primaryGenerateCalls := primaryAdapter.getGenerateCalls()
-				secondaryListCalls := secondaryAdapter.getListCalls()
-				secondaryGenerateCalls := secondaryAdapter.getGenerateCalls()
-				Expect(primaryListCalls).To(HaveLen(1))
-				Expect(primaryGenerateCalls).To(BeEmpty())
-				Expect(secondaryListCalls).To(HaveLen(1))
-				Expect(secondaryGenerateCalls).To(HaveLen(1))
-				Expect(secondaryGenerateCalls[0].options).To(ConsistOf("c"))
-			})
-		})
+	file, err := client.Generate([]string{"c"})
 
-		Context("with an error in all adapters", func() {
-			It("should return an error", func() {
-				primaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
-				secondaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
+	require.Nil(t, err)
+	require.Contains(t, file, "### C ###")
+}
 
-				_, err := client.Generate([]string{"c"})
+func TestClientGenerateWithMultipleOptionsShouldGenerateAGitignoreFile(t *testing.T) {
+	t.Parallel()
 
-				Expect(err).To(HaveOccurred())
-			})
-		})
-	})
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
 
-	Describe("Update", func() {
-		It("should update all supporting adapters", func() {
-			primaryAdapter.addUpdateReturn(nil)
-			secondaryAdapter.addUpdateReturn(nil)
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
 
-			err := client.Update()
+	primaryAdapter.addListReturn([]string{"c", "c++"}, nil)
+	primaryAdapter.addGenerateReturn("### C ###\n\n### C++ ###", nil)
 
-			Expect(err).ToNot(HaveOccurred())
+	file, err := client.Generate([]string{"c", "c++"})
 
-			primaryUpdateCalls := primaryAdapter.getUpdateCalls()
-			secondaryUpdateCalls := secondaryAdapter.getUpdateCalls()
+	require.Nil(t, err)
+	require.Contains(t, file, "### C ###")
+	require.Contains(t, file, "### C++ ###")
+}
 
-			Expect(primaryUpdateCalls).To(HaveLen(1))
-			Expect(secondaryUpdateCalls).To(HaveLen(1))
-		})
+func TestClientGenerateWithAnErrorInAnAdapterShouldFallbackToNextAdapter(t *testing.T) {
+	t.Parallel()
 
-		Context("with an error in one or more adapters", func() {
-			It("should return an error", func() {
-				primaryAdapter.addUpdateReturn(fmt.Errorf("Test error"))
-				secondaryAdapter.addUpdateReturn(nil)
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
 
-				err := client.Update()
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
 
-				Expect(err).To(HaveOccurred())
+	primaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
+	secondaryAdapter.addListReturn([]string{"c"}, nil)
+	secondaryAdapter.addGenerateReturn("### C ###", nil)
 
-				Expect(primaryAdapter.getUpdateCalls()).To(HaveLen(1))
-				Expect(secondaryAdapter.getUpdateCalls()).To(BeEmpty())
-			})
-		})
-	})
-})
+	file, err := client.Generate([]string{"c"})
+
+	require.Nil(t, err)
+	require.Contains(t, file, "### C ###")
+}
+
+func TestClientGenerateWithAnErrorInAllAdaptersShouldReturnAnError(t *testing.T) {
+	t.Parallel()
+
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
+
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
+
+	primaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
+	secondaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
+
+	_, err := client.Generate([]string{"c"})
+
+	require.NotNil(t, err)
+}
+
+func TestClientUpdateShouldUpdateAllAdapters(t *testing.T) {
+	t.Parallel()
+
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
+
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
+
+	primaryAdapter.addUpdateReturn(nil)
+	secondaryAdapter.addUpdateReturn(nil)
+
+	err := client.Update()
+
+	require.Nil(t, err)
+
+	primaryUpdateCalls := primaryAdapter.getUpdateCalls()
+	secondaryUpdateCalls := secondaryAdapter.getUpdateCalls()
+
+	require.Len(t, primaryUpdateCalls, 1)
+	require.Len(t, secondaryUpdateCalls, 1)
+}
+
+func TestClientUpdateWithAnErrorInOneOrMoreAdaptersShouldReturnAnError(t *testing.T) {
+	t.Parallel()
+
+	primaryAdapter := newFakeAdapter()
+	secondaryAdapter := newFakeAdapter()
+
+	client := internal.Client{
+		Adapters: []internal.Adapter{
+			&primaryAdapter,
+			&secondaryAdapter,
+		},
+	}
+
+	primaryAdapter.addUpdateReturn(fmt.Errorf("Test error"))
+	secondaryAdapter.addUpdateReturn(nil)
+
+	err := client.Update()
+
+	require.NotNil(t, err)
+}

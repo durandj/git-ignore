@@ -102,7 +102,11 @@ func (adapter *GitAdapter) Update() error {
 			URL: adapter.RepoURL,
 		})
 
-		return fmt.Errorf("unable to clone repository: %w", err)
+		if err != nil {
+			return fmt.Errorf("unable to clone repository: %w", err)
+		}
+
+		return nil
 	}
 
 	repository, err := git.PlainOpen(adapter.RepoDirectory)

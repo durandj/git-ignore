@@ -1,169 +1,307 @@
 package internal_test
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"strings"
+	"testing"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 
 	"github.com/durandj/git-ignore/internal"
 )
 
-func directoryExists(filePath string) bool {
-	fileStat, err := os.Stat(filePath)
+func TestGitAdapterListShouldRetrieveAListOfOptions(t *testing.T) {
+	t.Parallel()
 
-	return err == nil && fileStat.IsDir()
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
+
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
+
+	err = adapter.Update()
+	require.Nil(t, err)
+
+	options, err := adapter.List()
+	require.Nil(t, err)
+
+	require.Contains(t, options, "C")
+	require.Contains(t, options, "C++")
 }
 
-var _ = Describe("GitAdapter", func() {
-	var testDir string
-	var adapter *internal.GitAdapter
+func TestGitAdapterListShouldReturnAnErrorIfTheRepositoryDoesNotExist(t *testing.T) {
+	t.Parallel()
 
-	BeforeEach(func() {
-		var err error
-		testDir, err = os.MkdirTemp("", "test-gitignore")
-		if err != nil {
-			Fail(fmt.Sprintf("Unable to create temporary directory: %v", err))
-		}
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
 
-		adapter = &internal.GitAdapter{
-			RepoDirectory: path.Join(testDir, "gitignore"),
-			RepoURL:       internal.DefaultGitRepo,
-		}
-	})
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
 
-	AfterEach(func() {
-		_ = os.RemoveAll(testDir)
-	})
+	_, err = adapter.List()
 
-	Describe("List", func() {
-		It("should retrieve a list of options", func() {
-			err := adapter.Update()
-			Expect(err).ToNot(HaveOccurred())
+	require.NotNil(t, err)
+}
 
-			options, err := adapter.List()
-			Expect(err).ToNot(HaveOccurred())
+func TestGitAdapterGenerateShouldReturnAnErrorWhenNoOptionsAreGiven(t *testing.T) {
+	t.Parallel()
 
-			Expect(len(options)).NotTo(BeEmpty())
-			Expect(options).To(ContainElement("C"))
-			Expect(options).To(ContainElement("C++"))
-		})
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
 
-		It("should return an error if the repository doesn't exist", func() {
-			_, err := adapter.List()
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
 
-			Expect(err).To(HaveOccurred())
-		})
-	})
+	err = adapter.Update()
+	require.Nil(t, err)
 
-	Describe("Generate", func() {
-		BeforeEach(func() {
-			if err := adapter.Update(); err != nil {
-				panic(err)
-			}
-		})
+	_, err = adapter.Generate([]string{})
 
-		It("should return an error when no options are given", func() {
-			_, err := adapter.Generate([]string{})
+	require.NotNil(t, err)
+}
 
-			Expect(err).To(HaveOccurred())
-		})
+func TestGitAdapterGenerateShouldReturnAnErrorWhenTheRepositoryDoesNotExist(t *testing.T) {
+	t.Parallel()
 
-		It("should return an error when the repository doesn't exist", func() {
-			_ = os.RemoveAll(testDir)
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
 
-			_, err := adapter.Generate([]string{"C"})
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
 
-			Expect(err).To(HaveOccurred())
-		})
+	err = adapter.Update()
+	require.Nil(t, err)
 
-		It("should return an error when given an invalid option", func() {
-			_, err := adapter.Generate([]string{"iaminvalid"})
+	_ = os.RemoveAll(testDir)
 
-			Expect(err).To(HaveOccurred())
-		})
+	_, err = adapter.Generate([]string{"C"})
 
-		It("should generate a gitignore file when given a single option", func() {
-			contents, err := adapter.Generate([]string{"C"})
+	require.NotNil(t, err)
+}
 
-			Expect(err).ToNot(HaveOccurred())
+func TestGitAdapterGenerateShouldReturnAnErrorWhenGivenAnInvalidOption(t *testing.T) {
+	t.Parallel()
 
-			Expect(contents).To(ContainSubstring("*.o"))
-		})
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
 
-		It("should generate a gitignore file when given multiple options", func() {
-			contents, err := adapter.Generate([]string{"C", "Python"})
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
 
-			Expect(err).ToNot(HaveOccurred())
+	err = adapter.Update()
+	require.Nil(t, err)
 
-			Expect(contents).To(ContainSubstring("### C ###"))
-			Expect(contents).To(ContainSubstring("*.o"))
-			Expect(contents).To(ContainSubstring("### Python ###"))
-			Expect(contents).To(ContainSubstring("__pycache__/"))
-		})
+	_, err = adapter.Generate([]string{"iaminvalid"})
 
-		It("should be able to read from nested directories", func() {
-			contents, err := adapter.Generate([]string{"Nikola"})
+	require.NotNil(t, err)
+}
 
-			Expect(err).ToNot(HaveOccurred())
+func TestGitAdapterGenerateShouldCreateAGitignoreFileWhenGivenASingleOption(t *testing.T) {
+	t.Parallel()
 
-			Expect(contents).To(ContainSubstring(".doit.db"))
-		})
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
 
-		It("should not contain duplicate headers", func() {
-			contents, err := adapter.Generate([]string{"Hugo"})
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
 
-			Expect(err).ToNot(HaveOccurred())
-			Expect(strings.Count(contents, "### Hugo ###")).To(Equal(1))
-		})
-	})
+	err = adapter.Update()
+	require.Nil(t, err)
 
-	Describe("Update", func() {
-		It("should pull the repository", func() {
-			err := adapter.Update()
+	contents, err := adapter.Generate([]string{"C"})
 
-			Expect(err).ToNot(HaveOccurred())
+	require.Nil(t, err)
+	require.Contains(t, contents, "*.o")
+}
 
-			repoPath := path.Join(testDir, "gitignore")
-			Expect(directoryExists(repoPath)).To(BeTrue())
-		})
+func TestGitAdapterGenerateShouldCreateAGitignoreFileWhenGivenMultipleOptions(t *testing.T) {
+	t.Parallel()
 
-		It("should return an error when the repository doesn't exist", func() {
-			adapter = &internal.GitAdapter{
-				RepoDirectory: testDir,
-				RepoURL:       "https://example.com/thisdoes/notexist.git",
-			}
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
 
-			err := adapter.Update()
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
 
-			Expect(err).To(HaveOccurred())
-		})
+	err = adapter.Update()
+	require.Nil(t, err)
 
-		It("should pull changes to an existing repository", func() {
-			err := adapter.Update()
-			Expect(err).ToNot(HaveOccurred())
+	contents, err := adapter.Generate([]string{"C", "Python"})
 
-			err = adapter.Update()
-			Expect(err).ToNot(HaveOccurred())
+	require.Nil(t, err)
+	require.Contains(t, contents, "### C ###")
+	require.Contains(t, contents, "*.o")
+	require.Contains(t, contents, "### Python ###")
+	require.Contains(t, contents, "__pycache__/")
+}
 
-			repoPath := path.Join(testDir, "gitignore")
-			Expect(directoryExists(repoPath)).To(BeTrue())
-		})
+func TestGitAdapterGenerateShouldBeAbleToReadFromNestedDirectories(t *testing.T) {
+	t.Parallel()
 
-		It("should return an error when the path points at a file instead of a directory", func() {
-			_ = os.RemoveAll(testDir)
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
 
-			file, err := os.Create(testDir)
-			defer func() {
-				_ = file.Close()
-			}()
-			Expect(err).ToNot(HaveOccurred())
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
 
-			err = adapter.Update()
-			Expect(err).To(HaveOccurred())
-		})
-	})
-})
+	err = adapter.Update()
+	require.Nil(t, err)
+
+	contents, err := adapter.Generate([]string{"Nikola"})
+
+	require.Nil(t, err)
+	require.Contains(t, contents, ".doit.db")
+}
+
+func TestGitAdapterGenerateShouldNotContainDuplicateHeaders(t *testing.T) {
+	t.Parallel()
+
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
+
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
+
+	err = adapter.Update()
+	require.Nil(t, err)
+
+	contents, err := adapter.Generate([]string{"Hugo"})
+
+	require.Nil(t, err)
+	require.Equal(t, 1, strings.Count(contents, "### Hugo ###"))
+}
+
+func TestGitAdapterUpdateShouldPUllTheRepository(t *testing.T) {
+	t.Parallel()
+
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
+
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
+
+	err = adapter.Update()
+	require.Nil(t, err)
+
+	repoPath := path.Join(testDir, "gitignore")
+	require.DirExists(t, repoPath)
+}
+
+func TestGitAdapterUpdateShouldReturnAnErrorWhenTheRepoDoesNotExist(t *testing.T) {
+	t.Parallel()
+
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
+
+	adapter := &internal.GitAdapter{
+		RepoDirectory: testDir,
+		RepoURL:       "https://example.com/thisdoes/notexist.git",
+	}
+
+	err = adapter.Update()
+	require.NotNil(t, err)
+}
+
+func TestGitAdapterUpdateShouldPullChangesToAnExistingRepo(t *testing.T) {
+	t.Parallel()
+
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
+
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
+
+	err = adapter.Update()
+	require.Nil(t, err)
+
+	err = adapter.Update()
+	require.Nil(t, err)
+
+	repoPath := path.Join(testDir, "gitignore")
+	require.DirExists(t, repoPath)
+}
+
+func TestGitAdapterUpdateShouldReturnAnErrorWhenThePathGivesAFileNotADir(t *testing.T) {
+	t.Parallel()
+
+	testDir, err := os.MkdirTemp("", "test-gitignore")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(testDir)
+
+	adapter := &internal.GitAdapter{
+		RepoDirectory: path.Join(testDir, "gitignore"),
+		RepoURL:       internal.DefaultGitRepo,
+	}
+
+	_ = os.RemoveAll(testDir)
+
+	file, err := os.Create(testDir)
+	defer func() {
+		_ = file.Close()
+	}()
+	require.Nil(t, err)
+
+	err = adapter.Update()
+	require.NotNil(t, err)
+}

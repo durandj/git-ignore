@@ -33,10 +33,6 @@ type fakeAdapter struct {
 	updateReturnValues   []updateReturnValue
 }
 
-func (adapter *fakeAdapter) getListCalls() []listCall {
-	return adapter.listCalls
-}
-
 func (adapter *fakeAdapter) addListReturn(options []string, err error) {
 	adapter.listReturnValues = append(adapter.listReturnValues, listReturnValue{
 		options: options,
@@ -51,10 +47,6 @@ func (adapter *fakeAdapter) List() ([]string, error) {
 	adapter.listReturnValues = adapter.listReturnValues[1:]
 
 	return returnValue.options, returnValue.err
-}
-
-func (adapter *fakeAdapter) getGenerateCalls() []generateCall {
-	return adapter.generateCalls
 }
 
 func (adapter *fakeAdapter) addGenerateReturn(content string, err error) {
