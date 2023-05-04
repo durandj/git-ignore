@@ -47,6 +47,3 @@ nfpms:
     priority: "extra"
     formats:
       - deb
-    contents:
-      - src: ./git-ignore
-        dst: /usr/bin/git-ignore
