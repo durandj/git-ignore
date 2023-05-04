@@ -100,5 +100,7 @@ func newFakeAdapter() fakeAdapter {
 		listReturnValues:     []listReturnValue{},
 		generateCalls:        []generateCall{},
 		generateReturnValues: []generateReturnValue{},
+		updateCalls:          []updateCall{},
+		updateReturnValues:   []updateReturnValue{},
 	}
 }

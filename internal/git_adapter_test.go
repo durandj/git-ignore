@@ -2,7 +2,6 @@ package internal_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -25,10 +24,9 @@ var _ = Describe("GitAdapter", func() {
 
 	BeforeEach(func() {
 		var err error
-		testDir, err = ioutil.TempDir("", "test-gitignore")
+		testDir, err = os.MkdirTemp("", "test-gitignore")
 		if err != nil {
-			fmt.Printf("Unable to create temporary directory: %s\n", err)
-			os.Exit(1)
+			Fail(fmt.Sprintf("Unable to create temporary directory: %v", err))
 		}
 
 		adapter = &internal.GitAdapter{
@@ -44,12 +42,12 @@ var _ = Describe("GitAdapter", func() {
 	Describe("List", func() {
 		It("should retrieve a list of options", func() {
 			err := adapter.Update()
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			options, err := adapter.List()
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
-			Expect(len(options)).To(BeNumerically(">", 0))
+			Expect(len(options)).NotTo(BeEmpty())
 			Expect(options).To(ContainElement("C"))
 			Expect(options).To(ContainElement("C++"))
 		})
@@ -57,7 +55,7 @@ var _ = Describe("GitAdapter", func() {
 		It("should return an error if the repository doesn't exist", func() {
 			_, err := adapter.List()
 
-			Expect(err).ToNot(BeNil())
+			Expect(err).To(HaveOccurred())
 		})
 	})
 
@@ -71,7 +69,7 @@ var _ = Describe("GitAdapter", func() {
 		It("should return an error when no options are given", func() {
 			_, err := adapter.Generate([]string{})
 
-			Expect(err).ToNot(BeNil())
+			Expect(err).To(HaveOccurred())
 		})
 
 		It("should return an error when the repository doesn't exist", func() {
@@ -79,19 +77,19 @@ var _ = Describe("GitAdapter", func() {
 
 			_, err := adapter.Generate([]string{"C"})
 
-			Expect(err).ToNot(BeNil())
+			Expect(err).To(HaveOccurred())
 		})
 
 		It("should return an error when given an invalid option", func() {
 			_, err := adapter.Generate([]string{"iaminvalid"})
 
-			Expect(err).ToNot(BeNil())
+			Expect(err).To(HaveOccurred())
 		})
 
 		It("should generate a gitignore file when given a single option", func() {
 			contents, err := adapter.Generate([]string{"C"})
 
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(contents).To(ContainSubstring("*.o"))
 		})
@@ -99,7 +97,7 @@ var _ = Describe("GitAdapter", func() {
 		It("should generate a gitignore file when given multiple options", func() {
 			contents, err := adapter.Generate([]string{"C", "Python"})
 
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(contents).To(ContainSubstring("### C ###"))
 			Expect(contents).To(ContainSubstring("*.o"))
@@ -110,7 +108,7 @@ var _ = Describe("GitAdapter", func() {
 		It("should be able to read from nested directories", func() {
 			contents, err := adapter.Generate([]string{"Nikola"})
 
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(contents).To(ContainSubstring(".doit.db"))
 		})
@@ -118,7 +116,7 @@ var _ = Describe("GitAdapter", func() {
 		It("should not contain duplicate headers", func() {
 			contents, err := adapter.Generate([]string{"Hugo"})
 
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			Expect(strings.Count(contents, "### Hugo ###")).To(Equal(1))
 		})
 	})
@@ -127,7 +125,7 @@ var _ = Describe("GitAdapter", func() {
 		It("should pull the repository", func() {
 			err := adapter.Update()
 
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			repoPath := path.Join(testDir, "gitignore")
 			Expect(directoryExists(repoPath)).To(BeTrue())
@@ -141,15 +139,15 @@ var _ = Describe("GitAdapter", func() {
 
 			err := adapter.Update()
 
-			Expect(err).ToNot(BeNil())
+			Expect(err).To(HaveOccurred())
 		})
 
 		It("should pull changes to an existing repository", func() {
 			err := adapter.Update()
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			err = adapter.Update()
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			repoPath := path.Join(testDir, "gitignore")
 			Expect(directoryExists(repoPath)).To(BeTrue())
@@ -158,15 +156,14 @@ var _ = Describe("GitAdapter", func() {
 		It("should return an error when the path points at a file instead of a directory", func() {
 			_ = os.RemoveAll(testDir)
 
-			// nolint:gosec
 			file, err := os.Create(testDir)
 			defer func() {
 				_ = file.Close()
 			}()
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			err = adapter.Update()
-			Expect(err).ToNot(BeNil())
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })

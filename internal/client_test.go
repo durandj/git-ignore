@@ -36,7 +36,7 @@ var _ = Describe("Client", func() {
 
 				options, err := client.List()
 
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 
 				Expect(options).To(ConsistOf(expectedOptions))
 			})
@@ -50,7 +50,7 @@ var _ = Describe("Client", func() {
 
 				_, err := client.List()
 
-				Expect(err).ToNot(BeNil())
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
@@ -60,7 +60,7 @@ var _ = Describe("Client", func() {
 
 			options, err := client.List()
 
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(options).ToNot(BeNil())
 			Expect(options).ToNot(BeEmpty())
@@ -73,7 +73,7 @@ var _ = Describe("Client", func() {
 			It("should return an error", func() {
 				_, err := client.Generate(nil)
 
-				Expect(err).ToNot(BeNil())
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
@@ -83,7 +83,7 @@ var _ = Describe("Client", func() {
 
 				_, err := client.Generate([]string{"doesnotexist"})
 
-				Expect(err).ToNot(BeNil())
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
@@ -94,7 +94,7 @@ var _ = Describe("Client", func() {
 
 				file, err := client.Generate([]string{"c"})
 
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 
 				Expect(file).To(ContainSubstring("### C ###"))
 
@@ -111,7 +111,7 @@ var _ = Describe("Client", func() {
 
 				file, err := client.Generate([]string{"c", "c++"})
 
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 
 				Expect(file).To(ContainSubstring("### C ###"))
 				Expect(file).To(ContainSubstring("### C++ ###"))
@@ -130,7 +130,7 @@ var _ = Describe("Client", func() {
 
 				file, err := client.Generate([]string{"c"})
 
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 
 				Expect(file).To(ContainSubstring("### C ###"))
 
@@ -153,7 +153,7 @@ var _ = Describe("Client", func() {
 
 				_, err := client.Generate([]string{"c"})
 
-				Expect(err).ToNot(BeNil())
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
@@ -165,7 +165,7 @@ var _ = Describe("Client", func() {
 
 			err := client.Update()
 
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			primaryUpdateCalls := primaryAdapter.getUpdateCalls()
 			secondaryUpdateCalls := secondaryAdapter.getUpdateCalls()
@@ -181,10 +181,10 @@ var _ = Describe("Client", func() {
 
 				err := client.Update()
 
-				Expect(err).ToNot(BeNil())
+				Expect(err).To(HaveOccurred())
 
 				Expect(primaryAdapter.getUpdateCalls()).To(HaveLen(1))
-				Expect(secondaryAdapter.getUpdateCalls()).To(HaveLen(0))
+				Expect(secondaryAdapter.getUpdateCalls()).To(BeEmpty())
 			})
 		})
 	})

@@ -1,25 +1,49 @@
 linters:
-  enable:
-    - bodyclose
-    - dupl
-    - errcheck
-    - exportloopref
-    - gocognit
-    - goconst
-    - gocritic
-    - gocyclo
-    - gofmt
-    - goimports
-    - gosec
-    - govet
-    - lll
-    - nakedret
-    - prealloc
-    - revive
-    - staticcheck
-    - unconvert
-    - unparam
-    - whitespace
+  enable-all: true
+
+  disable:
+    - deadcode
+    - exhaustivestruct
+    - gci
+    - goerr113
+    - gofumpt
+    - golint
+    - ifshort
+    - interfacer
+    - maligned
+    - nosnakecase
+    - scopelint
+    - structcheck
+    - varcheck
+    - wsl
 
 issues:
-  exclude-use-default: false
+  exclude-rules:
+    # We need some way to interact with the user and stdout is a good
+    # choice.
+    - path: cmd/.+\.go$
+      linters:
+        - forbidigo
+
+    # Tests are probably going to run long when you include all the
+    # context directly in the test. It's also possible to run over if
+    # doing a table test.
+    - path: _test\.go$
+      linters:
+        - funlen
+
+    - path: (_test|mocks)\.go$
+      text: Use of weak random number generator
+      linters:
+        - gosec
+
+    # Pretty much every field in cobra.Command is optional
+    - text: are missing in Command
+      linters:
+        - exhaustruct
+
+linters-settings:
+  revive:
+    rules:
+      - name: package-comments
+        disabled: true

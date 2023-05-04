@@ -2,8 +2,6 @@ package internal
 
 import (
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 // Client is an object used to interact with the gitignore provider.
@@ -24,20 +22,21 @@ func (client *Client) List() ([]string, error) {
 
 		if err != nil {
 			adapterErrors = append(adapterErrors, err)
+
 			continue
 		}
 
 		return options, nil
 	}
 
-	return nil, fmt.Errorf("Unable to retrieve option list:\n%s", adapterErrors)
+	return nil, fmt.Errorf("unable to retrieve option list:\n%s", adapterErrors)
 }
 
 // Generate generates a .gitignore file that excludes files based on
 // the given options.
 func (client *Client) Generate(options []string) (string, error) {
 	if len(options) == 0 {
-		return "", fmt.Errorf("Must give at least one option")
+		return "", fmt.Errorf("must give at least one option")
 	}
 
 	adapterErrors := []error{}
@@ -46,25 +45,27 @@ func (client *Client) Generate(options []string) (string, error) {
 		validOptions, err := adapter.List()
 		if err != nil {
 			adapterErrors = append(adapterErrors, err)
+
 			continue
 		}
 
 		for _, option := range options {
 			if !includes(validOptions, option) {
-				return "", fmt.Errorf("Invalid option \"%s\"", option)
+				return "", fmt.Errorf("invalid option \"%s\"", option)
 			}
 		}
 
 		content, err := adapter.Generate(options)
 		if err != nil {
 			adapterErrors = append(adapterErrors, err)
+
 			continue
 		}
 
 		return content, nil
 	}
 
-	return "", fmt.Errorf("Unable to generate gitignore:\n%s", adapterErrors)
+	return "", fmt.Errorf("unable to generate gitignore:\n%s", adapterErrors)
 }
 
 // Update updates all local cache adapters.
@@ -72,7 +73,7 @@ func (client *Client) Update() error {
 	for _, adapter := range client.Adapters {
 		err := adapter.Update()
 		if err != nil {
-			return errors.Wrap(err, "Unable to update adapter")
+			return fmt.Errorf("unable to update adapter: %w", err)
 		}
 	}
 
@@ -83,7 +84,7 @@ func (client *Client) Update() error {
 func NewClient() (*Client, error) {
 	gitAdapter, err := NewGitAdapter()
 	if err != nil {
-		return nil, errors.Wrap(err, "Unable to create Git adapter")
+		return nil, fmt.Errorf("unable to create Git adapter: %w", err)
 	}
 
 	return &Client{

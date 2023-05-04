@@ -8,6 +8,8 @@ import (
 )
 
 func TestGitignore(t *testing.T) {
+	t.Parallel()
+
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Gitignore Suite")
 }

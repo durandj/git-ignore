@@ -2,17 +2,16 @@ package internal
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/pkg/errors"
-	"gopkg.in/src-d/go-git.v4"
+	"github.com/go-git/go-git/v5"
 )
 
 // DefaultGitRepo is the default repository to use for gitignore files.
@@ -32,7 +31,7 @@ func (adapter *GitAdapter) List() ([]string, error) {
 
 	err := filepath.Walk(adapter.RepoDirectory, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
-			return errors.Wrap(err, "Unable to file gitignore files")
+			return fmt.Errorf("unable to file gitignore files: %w", err)
 		}
 
 		if path.Ext(filePath) != ".gitignore" {
@@ -46,7 +45,7 @@ func (adapter *GitAdapter) List() ([]string, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to read gitignore repository: %w", err)
 	}
 
 	return options, nil
@@ -55,17 +54,17 @@ func (adapter *GitAdapter) List() ([]string, error) {
 // Generate creates a gitignore file with the given options.
 func (adapter *GitAdapter) Generate(options []string) (string, error) {
 	if len(options) == 0 {
-		return "", fmt.Errorf("Must give at least one option")
+		return "", fmt.Errorf("must give at least one option")
 	}
 
 	validOptions, err := adapter.List()
 	if err != nil {
-		return "", errors.Wrap(err, "Unable to validate options")
+		return "", fmt.Errorf("unable to validate options for generating ignore file: %w", err)
 	}
 
 	for _, option := range options {
 		if !includes(validOptions, option) {
-			return "", fmt.Errorf("Invalid option \"%s\"", option)
+			return "", fmt.Errorf("invalid option \"%s\"", option)
 		}
 	}
 
@@ -73,14 +72,12 @@ func (adapter *GitAdapter) Generate(options []string) (string, error) {
 	for _, option := range options {
 		filePath, err := adapter.findOptionFile(option)
 		if err != nil {
-			return "", errors.Wrap(err, "Unable to find file")
+			return "", fmt.Errorf("unable to find file: %w", err)
 		}
 
-		// nolint:gosec
-		contents, err := ioutil.ReadFile(filePath)
+		contents, err := os.ReadFile(filePath)
 		if err != nil {
-			message := fmt.Sprintf("Unable to read gitignore data for %s", option)
-			return "", errors.Wrap(err, message)
+			return "", fmt.Errorf("unable to read gitignore data for %s: %w", option, err)
 		}
 
 		if !bytes.HasPrefix(contents, []byte("###")) {
@@ -100,29 +97,35 @@ func (adapter *GitAdapter) Update() error {
 	repoExists := err != nil
 
 	if repoExists {
+		//nolint:exhaustruct // Only URL is required
 		_, err = git.PlainClone(adapter.RepoDirectory, false, &git.CloneOptions{
 			URL: adapter.RepoURL,
 		})
 
-		return errors.Wrap(err, "Unable to clone repository")
+		return fmt.Errorf("unable to clone repository: %w", err)
 	}
 
 	repository, err := git.PlainOpen(adapter.RepoDirectory)
 	if err != nil {
-		return errors.Wrap(err, "Unable to open repository")
+		return fmt.Errorf("unable to open repository: %w", err)
 	}
 
 	worktree, err := repository.Worktree()
 	if err != nil {
-		return errors.Wrap(err, "Unable to get working tree")
+		return fmt.Errorf("unable to get working tree: %w", err)
 	}
 
+	//nolint:exhaustruct // all fields are optional
 	err = worktree.Pull(&git.PullOptions{})
-	if err == git.NoErrAlreadyUpToDate {
+	if errors.Is(err, git.NoErrAlreadyUpToDate) {
 		err = nil
 	}
 
-	return err
+	if err != nil {
+		return fmt.Errorf("unable to update gitignore repository: %w", err)
+	}
+
+	return nil
 }
 
 func (adapter *GitAdapter) findOptionFile(option string) (string, error) {
@@ -131,7 +134,7 @@ func (adapter *GitAdapter) findOptionFile(option string) (string, error) {
 
 	err := filepath.Walk(adapter.RepoDirectory, func(currentFile string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
-			return errors.Wrap(err, "Error while looking for file")
+			return fmt.Errorf("error while looking for file: %w", err)
 		}
 
 		if strings.HasSuffix(currentFile, filename) {
@@ -143,14 +146,12 @@ func (adapter *GitAdapter) findOptionFile(option string) (string, error) {
 		return nil
 	})
 
-	if err != nil && err != io.EOF {
-		message := fmt.Sprintf("Unable to find file for %s", option)
-
-		return "", errors.Wrap(err, message)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return "", fmt.Errorf("unable to find file for %s: %w", option, err)
 	}
 
 	if filePath == "" {
-		return "", errors.Errorf("Unable to find file for %s", option)
+		return "", fmt.Errorf("unable to find file for %s", option)
 	}
 
 	return filePath, nil
@@ -161,7 +162,7 @@ func (adapter *GitAdapter) findOptionFile(option string) (string, error) {
 func NewGitAdapter() (*GitAdapter, error) {
 	currentUser, err := user.Current()
 	if err != nil {
-		return nil, errors.Wrap(err, "Unable to get user home directory")
+		return nil, fmt.Errorf("unable to get user home directory: %w", err)
 	}
 
 	userHome := currentUser.HomeDir
