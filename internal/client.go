@@ -2,6 +2,8 @@ package internal
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 )
 
 // Client is an object used to interact with the gitignore provider.
@@ -25,6 +27,10 @@ func (client *Client) List() ([]string, error) {
 
 			continue
 		}
+
+		slices.SortFunc(options, func(a, b string) int {
+			return strings.Compare(strings.ToLower(a), strings.ToLower(b))
+		})
 
 		return options, nil
 	}
