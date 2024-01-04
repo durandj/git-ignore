@@ -38,11 +38,22 @@ issues:
         - gosec
 
     # Pretty much every field in cobra.Command is optional
-    - text: are missing in Command
+    - text: cobra.Command is missing fields
       linters:
         - exhaustruct
 
 linters-settings:
+  depguard:
+    rules:
+      main:
+        allow:
+          - $gostd
+          - github.com/durandj/git-ignore
+          - github.com/go-git/go-git/v5
+          - github.com/logrusorgru/aurora/v4
+          - github.com/stretchr/testify/require
+          - github.com/spf13/cobra
+
   revive:
     rules:
       - name: package-comments

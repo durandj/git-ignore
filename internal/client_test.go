@@ -29,7 +29,7 @@ func TestClientListWithErrorInAdapterShouldFallbackToNextAdapter(t *testing.T) {
 
 	options, err := client.List()
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, expectedOptions, options)
 }
 
@@ -52,7 +52,7 @@ func TestClientListWithErrorInAllAdaptersShouldReturnAnError(t *testing.T) {
 
 	_, err := client.List()
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestClientListShouldRetrieveAListOfOptions(t *testing.T) {
@@ -73,7 +73,7 @@ func TestClientListShouldRetrieveAListOfOptions(t *testing.T) {
 
 	options, err := client.List()
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, expectedOptions, options)
 }
 
@@ -92,7 +92,7 @@ func TestClientGenerateWithNoOptionsShouldReturnAnError(t *testing.T) {
 
 	_, err := client.Generate(nil)
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestClientGenerateWithAnInvalidOptionShouldReturnAnError(t *testing.T) {
@@ -112,7 +112,7 @@ func TestClientGenerateWithAnInvalidOptionShouldReturnAnError(t *testing.T) {
 
 	_, err := client.Generate([]string{"doesnotexist"})
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestClientGenerateWithASingleOptionShouldGenerateAGitignoreFile(t *testing.T) {
@@ -133,7 +133,7 @@ func TestClientGenerateWithASingleOptionShouldGenerateAGitignoreFile(t *testing.
 
 	file, err := client.Generate([]string{"c"})
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Contains(t, file, "### C ###")
 }
 
@@ -155,7 +155,7 @@ func TestClientGenerateWithMultipleOptionsShouldGenerateAGitignoreFile(t *testin
 
 	file, err := client.Generate([]string{"c", "c++"})
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Contains(t, file, "### C ###")
 	require.Contains(t, file, "### C++ ###")
 }
@@ -179,7 +179,7 @@ func TestClientGenerateWithAnErrorInAnAdapterShouldFallbackToNextAdapter(t *test
 
 	file, err := client.Generate([]string{"c"})
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Contains(t, file, "### C ###")
 }
 
@@ -201,7 +201,7 @@ func TestClientGenerateWithAnErrorInAllAdaptersShouldReturnAnError(t *testing.T)
 
 	_, err := client.Generate([]string{"c"})
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestClientUpdateShouldUpdateAllAdapters(t *testing.T) {
@@ -222,7 +222,7 @@ func TestClientUpdateShouldUpdateAllAdapters(t *testing.T) {
 
 	err := client.Update()
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	primaryUpdateCalls := primaryAdapter.getUpdateCalls()
 	secondaryUpdateCalls := secondaryAdapter.getUpdateCalls()
@@ -249,5 +249,5 @@ func TestClientUpdateWithAnErrorInOneOrMoreAdaptersShouldReturnAnError(t *testin
 
 	err := client.Update()
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }

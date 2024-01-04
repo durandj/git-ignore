@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/logrusorgru/aurora/v4"
 	"github.com/spf13/cobra"
 
 	"github.com/durandj/git-ignore/internal"

@@ -26,10 +26,10 @@ func TestGitAdapterListShouldRetrieveAListOfOptions(t *testing.T) {
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	options, err := adapter.List()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	require.Contains(t, options, "C")
 	require.Contains(t, options, "C++")
@@ -51,7 +51,7 @@ func TestGitAdapterListShouldReturnAnErrorIfTheRepositoryDoesNotExist(t *testing
 
 	_, err = adapter.List()
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestGitAdapterGenerateShouldReturnAnErrorWhenNoOptionsAreGiven(t *testing.T) {
@@ -69,11 +69,11 @@ func TestGitAdapterGenerateShouldReturnAnErrorWhenNoOptionsAreGiven(t *testing.T
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = adapter.Generate([]string{})
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestGitAdapterGenerateShouldReturnAnErrorWhenTheRepositoryDoesNotExist(t *testing.T) {
@@ -91,13 +91,13 @@ func TestGitAdapterGenerateShouldReturnAnErrorWhenTheRepositoryDoesNotExist(t *t
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_ = os.RemoveAll(testDir)
 
 	_, err = adapter.Generate([]string{"C"})
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestGitAdapterGenerateShouldReturnAnErrorWhenGivenAnInvalidOption(t *testing.T) {
@@ -115,11 +115,11 @@ func TestGitAdapterGenerateShouldReturnAnErrorWhenGivenAnInvalidOption(t *testin
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = adapter.Generate([]string{"iaminvalid"})
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestGitAdapterGenerateShouldCreateAGitignoreFileWhenGivenASingleOption(t *testing.T) {
@@ -137,11 +137,11 @@ func TestGitAdapterGenerateShouldCreateAGitignoreFileWhenGivenASingleOption(t *t
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	contents, err := adapter.Generate([]string{"C"})
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Contains(t, contents, "*.o")
 }
 
@@ -160,11 +160,11 @@ func TestGitAdapterGenerateShouldCreateAGitignoreFileWhenGivenMultipleOptions(t 
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	contents, err := adapter.Generate([]string{"C", "Python"})
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Contains(t, contents, "### C ###")
 	require.Contains(t, contents, "*.o")
 	require.Contains(t, contents, "### Python ###")
@@ -186,11 +186,11 @@ func TestGitAdapterGenerateShouldBeAbleToReadFromNestedDirectories(t *testing.T)
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	contents, err := adapter.Generate([]string{"Nikola"})
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Contains(t, contents, ".doit.db")
 }
 
@@ -209,11 +209,11 @@ func TestGitAdapterGenerateShouldNotContainDuplicateHeaders(t *testing.T) {
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	contents, err := adapter.Generate([]string{"Hugo"})
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 1, strings.Count(contents, "### Hugo ###"))
 }
 
@@ -232,7 +232,7 @@ func TestGitAdapterUpdateShouldPUllTheRepository(t *testing.T) {
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	repoPath := path.Join(testDir, "gitignore")
 	require.DirExists(t, repoPath)
@@ -253,7 +253,7 @@ func TestGitAdapterUpdateShouldReturnAnErrorWhenTheRepoDoesNotExist(t *testing.T
 	}
 
 	err = adapter.Update()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestGitAdapterUpdateShouldPullChangesToAnExistingRepo(t *testing.T) {
@@ -271,10 +271,10 @@ func TestGitAdapterUpdateShouldPullChangesToAnExistingRepo(t *testing.T) {
 	}
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = adapter.Update()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	repoPath := path.Join(testDir, "gitignore")
 	require.DirExists(t, repoPath)
@@ -300,8 +300,8 @@ func TestGitAdapterUpdateShouldReturnAnErrorWhenThePathGivesAFileNotADir(t *test
 	defer func() {
 		_ = file.Close()
 	}()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = adapter.Update()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
