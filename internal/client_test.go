@@ -1,7 +1,7 @@
 package internal_test
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -24,7 +24,7 @@ func TestClientListWithErrorInAdapterShouldFallbackToNextAdapter(t *testing.T) {
 
 	expectedOptions := []string{"c"}
 
-	primaryAdapter.addListReturn(nil, fmt.Errorf("Primary error"))
+	primaryAdapter.addListReturn(nil, errors.New("Primary error"))
 	secondaryAdapter.addListReturn(expectedOptions, nil)
 
 	options, err := client.List()
@@ -46,7 +46,7 @@ func TestClientListWithErrorInAllAdaptersShouldReturnAnError(t *testing.T) {
 		},
 	}
 
-	expectedErr := fmt.Errorf("Test error")
+	expectedErr := errors.New("Test error")
 	primaryAdapter.addListReturn(nil, expectedErr)
 	secondaryAdapter.addListReturn(nil, expectedErr)
 
@@ -173,7 +173,7 @@ func TestClientGenerateWithAnErrorInAnAdapterShouldFallbackToNextAdapter(t *test
 		},
 	}
 
-	primaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
+	primaryAdapter.addListReturn(nil, errors.New("Test error"))
 	secondaryAdapter.addListReturn([]string{"c"}, nil)
 	secondaryAdapter.addGenerateReturn("### C ###", nil)
 
@@ -196,8 +196,8 @@ func TestClientGenerateWithAnErrorInAllAdaptersShouldReturnAnError(t *testing.T)
 		},
 	}
 
-	primaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
-	secondaryAdapter.addListReturn(nil, fmt.Errorf("Test error"))
+	primaryAdapter.addListReturn(nil, errors.New("Test error"))
+	secondaryAdapter.addListReturn(nil, errors.New("Test error"))
 
 	_, err := client.Generate([]string{"c"})
 
@@ -244,7 +244,7 @@ func TestClientUpdateWithAnErrorInOneOrMoreAdaptersShouldReturnAnError(t *testin
 		},
 	}
 
-	primaryAdapter.addUpdateReturn(fmt.Errorf("Test error"))
+	primaryAdapter.addUpdateReturn(errors.New("Test error"))
 	secondaryAdapter.addUpdateReturn(nil)
 
 	err := client.Update()

@@ -1,60 +1,76 @@
+---
+version: "2"
+
 linters:
-  enable-all: true
+  default: all
 
   disable:
-    - deadcode
-    - exhaustivestruct
-    - gci
-    - goerr113
-    - gofumpt
-    - golint
-    - ifshort
-    - interfacer
-    - maligned
-    - nosnakecase
-    - scopelint
-    - structcheck
-    - varcheck
+    - err113
     - wsl
 
-issues:
-  exclude-rules:
-    # We need some way to interact with the user and stdout is a good
-    # choice.
-    - path: cmd/.+\.go$
-      linters:
-        - forbidigo
+  settings:
+    depguard:
+      rules:
+        main:
+          allow:
+            - $gostd
+            - github.com/durandj/git-ignore
+            - github.com/go-git/go-git/v5
+            - github.com/logrusorgru/aurora/v4
+            - github.com/stretchr/testify/require
+            - github.com/spf13/cobra
 
-    # Tests are probably going to run long when you include all the
-    # context directly in the test. It's also possible to run over if
-    # doing a table test.
-    - path: _test\.go$
-      linters:
-        - funlen
+    revive:
+      rules:
+        - name: package-comments
+          disabled: true
 
-    - path: (_test|mocks)\.go$
-      text: Use of weak random number generator
-      linters:
-        - gosec
+  exclusions:
+    generated: lax
 
-    # Pretty much every field in cobra.Command is optional
-    - text: cobra.Command is missing fields
-      linters:
-        - exhaustruct
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
 
-linters-settings:
-  depguard:
     rules:
-      main:
-        allow:
-          - $gostd
-          - github.com/durandj/git-ignore
-          - github.com/go-git/go-git/v5
-          - github.com/logrusorgru/aurora/v4
-          - github.com/stretchr/testify/require
-          - github.com/spf13/cobra
+      # We need some way to interact with the user and stdout is a good
+      # choice.
+      - linters:
+          - forbidigo
+        path: cmd/.+\.go$
 
-  revive:
-    rules:
-      - name: package-comments
-        disabled: true
+      # Tests are probably going to run long when you include all the
+      # context directly in the test. It's also possible to run over if
+      # doing a table test.
+      - linters:
+          - funlen
+        path: _test\.go$
+
+      - linters:
+          - gosec
+        path: (_test|mocks)\.go$
+        text: Use of weak random number generator
+
+      # Pretty much every field in cobra.Command is optional
+      - linters:
+          - exhaustruct
+        text: cobra.Command is missing fields
+
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

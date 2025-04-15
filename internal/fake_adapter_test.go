@@ -33,27 +33,13 @@ type fakeAdapter struct {
 	updateReturnValues   []updateReturnValue
 }
 
-func (adapter *fakeAdapter) addListReturn(options []string, err error) {
-	adapter.listReturnValues = append(adapter.listReturnValues, listReturnValue{
-		options: options,
-		err:     err,
-	})
-}
+func (adapter *fakeAdapter) Update() error {
+	adapter.updateCalls = append(adapter.updateCalls, updateCall{})
 
-func (adapter *fakeAdapter) List() ([]string, error) {
-	adapter.listCalls = append(adapter.listCalls, listCall{})
+	returnValue := adapter.updateReturnValues[0]
+	adapter.updateReturnValues = adapter.updateReturnValues[1:]
 
-	returnValue := adapter.listReturnValues[0]
-	adapter.listReturnValues = adapter.listReturnValues[1:]
-
-	return returnValue.options, returnValue.err
-}
-
-func (adapter *fakeAdapter) addGenerateReturn(content string, err error) {
-	adapter.generateReturnValues = append(adapter.generateReturnValues, generateReturnValue{
-		content: content,
-		err:     err,
-	})
+	return returnValue.err
 }
 
 func (adapter *fakeAdapter) Generate(options []string) (string, error) {
@@ -67,6 +53,29 @@ func (adapter *fakeAdapter) Generate(options []string) (string, error) {
 	return returnValue.content, returnValue.err
 }
 
+func (adapter *fakeAdapter) List() ([]string, error) {
+	adapter.listCalls = append(adapter.listCalls, listCall{})
+
+	returnValue := adapter.listReturnValues[0]
+	adapter.listReturnValues = adapter.listReturnValues[1:]
+
+	return returnValue.options, returnValue.err
+}
+
+func (adapter *fakeAdapter) addListReturn(options []string, err error) {
+	adapter.listReturnValues = append(adapter.listReturnValues, listReturnValue{
+		options: options,
+		err:     err,
+	})
+}
+
+func (adapter *fakeAdapter) addGenerateReturn(content string, err error) {
+	adapter.generateReturnValues = append(adapter.generateReturnValues, generateReturnValue{
+		content: content,
+		err:     err,
+	})
+}
+
 func (adapter *fakeAdapter) getUpdateCalls() []updateCall {
 	return adapter.updateCalls
 }
@@ -75,15 +84,6 @@ func (adapter *fakeAdapter) addUpdateReturn(err error) {
 	adapter.updateReturnValues = append(adapter.updateReturnValues, updateReturnValue{
 		err: err,
 	})
-}
-
-func (adapter *fakeAdapter) Update() error {
-	adapter.updateCalls = append(adapter.updateCalls, updateCall{})
-
-	returnValue := adapter.updateReturnValues[0]
-	adapter.updateReturnValues = adapter.updateReturnValues[1:]
-
-	return returnValue.err
 }
 
 func newFakeAdapter() fakeAdapter {

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -11,6 +12,20 @@ import (
 // and turn them into a gitignore file.
 type Client struct {
 	Adapters []Adapter
+}
+
+// NewClient creates a new client for generating gitignore files.
+func NewClient() (*Client, error) {
+	gitAdapter, err := NewGitAdapter()
+	if err != nil {
+		return nil, fmt.Errorf("unable to create Git adapter: %w", err)
+	}
+
+	return &Client{
+		Adapters: []Adapter{
+			gitAdapter,
+		},
+	}, nil
 }
 
 // List returns a list of valid options for generating a gitignore
@@ -42,7 +57,7 @@ func (client *Client) List() ([]string, error) {
 // the given options.
 func (client *Client) Generate(options []string) (string, error) {
 	if len(options) == 0 {
-		return "", fmt.Errorf("must give at least one option")
+		return "", errors.New("must give at least one option")
 	}
 
 	adapterErrors := []error{}
@@ -56,7 +71,7 @@ func (client *Client) Generate(options []string) (string, error) {
 		}
 
 		for _, option := range options {
-			if !includes(validOptions, option) {
+			if !slices.Contains(validOptions, option) {
 				return "", fmt.Errorf("invalid option \"%s\"", option)
 			}
 		}
@@ -84,28 +99,4 @@ func (client *Client) Update() error {
 	}
 
 	return nil
-}
-
-// NewClient creates a new client for generating gitignore files.
-func NewClient() (*Client, error) {
-	gitAdapter, err := NewGitAdapter()
-	if err != nil {
-		return nil, fmt.Errorf("unable to create Git adapter: %w", err)
-	}
-
-	return &Client{
-		Adapters: []Adapter{
-			gitAdapter,
-		},
-	}, nil
-}
-
-func includes(expected []string, value string) bool {
-	for _, valid := range expected {
-		if valid == value {
-			return true
-		}
-	}
-
-	return false
 }

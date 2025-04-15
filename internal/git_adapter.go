@@ -9,6 +9,7 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
@@ -22,6 +23,22 @@ const DefaultGitRepo string = "https://github.com/github/gitignore.git"
 type GitAdapter struct {
 	RepoDirectory string
 	RepoURL       string
+}
+
+// NewGitAdapter creates a new adapter for working with Git
+// repositories.
+func NewGitAdapter() (*GitAdapter, error) {
+	currentUser, err := user.Current()
+	if err != nil {
+		return nil, fmt.Errorf("unable to get user home directory: %w", err)
+	}
+
+	userHome := currentUser.HomeDir
+
+	return &GitAdapter{
+		RepoDirectory: path.Join(userHome, ".local", "share", "git-ignore", "gitignore"),
+		RepoURL:       DefaultGitRepo,
+	}, nil
 }
 
 // List returns the list of options that can be used to generate a
@@ -54,7 +71,7 @@ func (adapter *GitAdapter) List() ([]string, error) {
 // Generate creates a gitignore file with the given options.
 func (adapter *GitAdapter) Generate(options []string) (string, error) {
 	if len(options) == 0 {
-		return "", fmt.Errorf("must give at least one option")
+		return "", errors.New("must give at least one option")
 	}
 
 	validOptions, err := adapter.List()
@@ -63,7 +80,7 @@ func (adapter *GitAdapter) Generate(options []string) (string, error) {
 	}
 
 	for _, option := range options {
-		if !includes(validOptions, option) {
+		if !slices.Contains(validOptions, option) {
 			return "", fmt.Errorf("invalid option \"%s\"", option)
 		}
 	}
@@ -159,20 +176,4 @@ func (adapter *GitAdapter) findOptionFile(option string) (string, error) {
 	}
 
 	return filePath, nil
-}
-
-// NewGitAdapter creates a new adapter for working with Git
-// repositories.
-func NewGitAdapter() (*GitAdapter, error) {
-	currentUser, err := user.Current()
-	if err != nil {
-		return nil, fmt.Errorf("unable to get user home directory: %w", err)
-	}
-
-	userHome := currentUser.HomeDir
-
-	return &GitAdapter{
-		RepoDirectory: path.Join(userHome, ".local", "share", "git-ignore", "gitignore"),
-		RepoURL:       DefaultGitRepo,
-	}, nil
 }
