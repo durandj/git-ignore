@@ -1,5 +1,5 @@
 golangci-lint 2.1.1
-goreleaser    1.23.0
+goreleaser    2.8.2
 golang        1.24.2
-task          3.33.1
+task          3.42.1
 pre-commit    4.2.0
